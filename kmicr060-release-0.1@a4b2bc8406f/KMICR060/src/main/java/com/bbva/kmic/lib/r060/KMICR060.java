@@ -1,6 +1,7 @@
 package com.bbva.kmic.lib.r060;
 
 import java.util.List;
+import java.util.Map;
 
 import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
 import com.bbva.kmic.dto.movementmodel.MicroloanMovementFilter;
@@ -36,5 +37,8 @@ public interface KMICR060 {
 	 * @return Microloan movement information
 	 */
 	MicroloanMovement executeGetMicroloanMovement(MicroloanMovement microloanMovement);
+	
+	List<MicroloanMovement> mapFromResultSet(List<Map<String, Object>> resultSet);
+
 
 }

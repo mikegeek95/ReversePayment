@@ -94,4 +94,9 @@ public class KMICR060Impl extends KMICR060Abstract {
 
         return out;
     }
+    
+    @Override
+    public List<MicroloanMovement> mapFromResultSet(List<Map<String, Object>> resultSet) {
+        return Mapper.mapListMicroloanMovement(resultSet);
+    }
 }
