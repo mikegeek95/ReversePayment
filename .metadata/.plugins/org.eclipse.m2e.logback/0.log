@@ -7186,3 +7186,154 @@ org.eclipse.core.runtime.CoreException: Could not resolve artifact com.bbva.kmic
 2025-06-11 11:51:58,225 [Worker-83: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
 2025-06-11 11:51:58,226 [Worker-83: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
 2025-06-11 12:25:24,417 [Worker-4: Loading available Gradle versions] INFO  o.e.b.c.i.u.g.PublishedGradleVersions - Gradle version information cache is up-to-date. Trying to read.
+2025-06-12 12:14:45,811 [Worker-2: Loading available Gradle versions] INFO  o.e.b.c.i.u.g.PublishedGradleVersions - Gradle version information cache is out-of-date. Trying to update.
+2025-06-12 12:17:33,744 [Worker-23: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:33,749 [Worker-23: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ProyectosCursoAPX\BATCH\du_product_workshop\artifact\dtos\KMICC001\src\main\resources
+2025-06-12 12:17:33,750 [Worker-23: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ProyectosCursoAPX\BATCH\du_product_workshop\artifact\dtos\KMICC001\src\main\resources
+2025-06-12 12:17:33,758 [Worker-23: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:33,759 [Worker-23: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ProyectosCursoAPX\BATCH\du_product_workshop\artifact\dtos\KMICC001\src\test\resources
+2025-06-12 12:17:36,064 [Worker-1: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using DEFAULT lifecycle mapping for MavenProject: com.bbva.kmic.dto.payments:KMICC092:0.0.0 @ C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\KMICC092\pom.xml.
+2025-06-12 12:17:36,331 [Worker-1: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:36,333 [Worker-1: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\KMICC092\src\main\resources
+2025-06-12 12:17:36,334 [Worker-1: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\KMICC092\src\main\resources
+2025-06-12 12:17:36,339 [Worker-1: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:36,340 [Worker-1: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\KMICC092\src\test\resources
+2025-06-12 12:17:37,561 [Worker-22: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using DEFAULT lifecycle mapping for MavenProject: com.bbva.kmic.dto.payments:KMICC092:0.0.0 @ C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\KMICC092\pom.xml.
+2025-06-12 12:17:37,742 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:37,743 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\KMICC092\src\main\resources
+2025-06-12 12:17:37,744 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\KMICC092\src\main\resources
+2025-06-12 12:17:37,749 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:37,750 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\KMICC092\src\test\resources
+2025-06-12 12:17:37,995 [Worker-22: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICC001: com.bbva.kmic.dto.productworkshop:KMICC001:0.1.0-SNAPSHOT with classifier  to /KMICC001/target/classes
+2025-06-12 12:17:38,032 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:38,033 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ProyectosCursoAPX\BATCH\du_product_workshop\artifact\libraries\KMICR001\src\main\resources
+2025-06-12 12:17:38,034 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ProyectosCursoAPX\BATCH\du_product_workshop\artifact\libraries\KMICR001\src\main\resources
+2025-06-12 12:17:38,038 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:38,038 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ProyectosCursoAPX\BATCH\du_product_workshop\artifact\libraries\KMICR001\src\test\resources
+2025-06-12 12:17:40,260 [Worker-22: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICC001: com.bbva.kmic.dto.productworkshop:KMICC001:0.1.0-SNAPSHOT with classifier  to /KMICC001/target/classes
+2025-06-12 12:17:40,263 [Worker-22: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICR001: com.bbva.kmic:KMICR001:0.1.0-SNAPSHOT with classifier  to /KMICR001/target/classes
+2025-06-12 12:17:40,337 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:40,345 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 5 resources
+2025-06-12 12:17:40,410 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 3 resources
+2025-06-12 12:17:40,448 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:40,450 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 7 resources
+2025-06-12 12:17:42,566 [Worker-22: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICR001: com.bbva.kmic:KMICR001:0.1.0-SNAPSHOT with classifier  to /KMICR001/target/classes
+2025-06-12 12:17:42,665 [Worker-22: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICC001: com.bbva.kmic.dto.productworkshop:KMICC001:0.1.0-SNAPSHOT with classifier  to /KMICC001/target/classes
+2025-06-12 12:17:42,708 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:42,710 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 6 resources
+2025-06-12 12:17:42,747 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:17:42,752 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:42,753 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 3 resources
+2025-06-12 12:17:43,896 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:43,898 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 5 resources
+2025-06-12 12:17:43,929 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 3 resources
+2025-06-12 12:17:43,958 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:43,959 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 1 resource
+2025-06-12 12:17:44,750 [Worker-22: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using DEFAULT lifecycle mapping for MavenProject: com.bbva.kmic.dto.movement:KMICC058:0.2.0 @ C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicc058-release-0.2@ac72d4aa487\pom.xml.
+2025-06-12 12:17:44,987 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:44,987 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicc058-release-0.2@ac72d4aa487\src\main\resources
+2025-06-12 12:17:44,988 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicc058-release-0.2@ac72d4aa487\src\main\resources
+2025-06-12 12:17:44,997 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:45,000 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicc058-release-0.2@ac72d4aa487\src\test\resources
+2025-06-12 12:17:46,456 [Worker-26: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using DEFAULT lifecycle mapping for MavenProject: com.bbva.kmic.dto.movement:KMICC058:0.2.0 @ C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicc058-release-0.2@ac72d4aa487\pom.xml.
+2025-06-12 12:17:46,636 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:46,637 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicc058-release-0.2@ac72d4aa487\src\main\resources
+2025-06-12 12:17:46,638 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicc058-release-0.2@ac72d4aa487\src\main\resources
+2025-06-12 12:17:46,642 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:46,643 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicc058-release-0.2@ac72d4aa487\src\test\resources
+2025-06-12 12:17:46,914 [Worker-26: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/kmicc058-release-0.2@ac72d4aa487: com.bbva.kmic.dto.movement:KMICC058:0.2.0 with classifier  to /kmicc058-release-0.2@ac72d4aa487/target/classes
+2025-06-12 12:17:47,082 [Worker-26: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using DEFAULT lifecycle mapping for MavenProject: com.bbva.kmic:KMICR060:0.1.4 @ C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicr060-release-0.1@a4b2bc8406f\KMICR060\pom.xml.
+2025-06-12 12:17:47,123 [Worker-26: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/kmicc058-release-0.2@ac72d4aa487: com.bbva.kmic.dto.movement:KMICC058:0.2.0 with classifier  to /kmicc058-release-0.2@ac72d4aa487/target/classes
+2025-06-12 12:17:47,275 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:47,275 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicr060-release-0.1@a4b2bc8406f\KMICR060\src\main\resources
+2025-06-12 12:17:47,276 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicr060-release-0.1@a4b2bc8406f\KMICR060\src\main\resources
+2025-06-12 12:17:47,281 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:47,282 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicr060-release-0.1@a4b2bc8406f\KMICR060\src\test\resources
+2025-06-12 12:17:47,812 [Worker-10: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using DEFAULT lifecycle mapping for MavenProject: com.bbva.kmic:KMICR060:0.1.4 @ C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicr060-release-0.1@a4b2bc8406f\KMICR060\pom.xml.
+2025-06-12 12:17:47,859 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/kmicc058-release-0.2@ac72d4aa487: com.bbva.kmic.dto.movement:KMICC058:0.2.0 with classifier  to /kmicc058-release-0.2@ac72d4aa487/target/classes
+2025-06-12 12:17:47,992 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:47,992 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicr060-release-0.1@a4b2bc8406f\KMICR060\src\main\resources
+2025-06-12 12:17:47,993 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicr060-release-0.1@a4b2bc8406f\KMICR060\src\main\resources
+2025-06-12 12:17:47,997 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:47,998 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicr060-release-0.1@a4b2bc8406f\KMICR060\src\test\resources
+2025-06-12 12:17:49,425 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICR060: com.bbva.kmic:KMICR060:0.1.4 with classifier  to /KMICR060/target/classes
+2025-06-12 12:17:49,504 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/kmicc058-release-0.2@ac72d4aa487: com.bbva.kmic.dto.movement:KMICC058:0.2.0 with classifier  to /kmicc058-release-0.2@ac72d4aa487/target/classes
+2025-06-12 12:17:49,701 [Worker-10: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using DEFAULT lifecycle mapping for MavenProject: com.bbva.kmic:KMICR060IMPL:0.1.4 @ C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicr060-release-0.1@a4b2bc8406f\KMICR060IMPL\pom.xml.
+2025-06-12 12:17:50,211 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICR060: com.bbva.kmic:KMICR060:0.1.4 with classifier  to /KMICR060/target/classes
+2025-06-12 12:17:50,295 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/kmicc058-release-0.2@ac72d4aa487: com.bbva.kmic.dto.movement:KMICC058:0.2.0 with classifier  to /kmicc058-release-0.2@ac72d4aa487/target/classes
+2025-06-12 12:17:51,265 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:51,267 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 6 resources
+2025-06-12 12:17:51,289 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:17:51,292 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:51,294 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 2 resources
+2025-06-12 12:17:52,189 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICC092: com.bbva.kmic.dto.payments:KMICC092:0.0.0 with classifier  to /KMICC092/target/classes
+2025-06-12 12:17:52,191 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/kmicc058-release-0.2@ac72d4aa487: com.bbva.kmic.dto.movement:KMICC058:0.2.0 with classifier  to /kmicc058-release-0.2@ac72d4aa487/target/classes
+2025-06-12 12:17:52,341 [Worker-10: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using DEFAULT lifecycle mapping for MavenProject: com.bbva.kmic:KMICR092:0.0.0 @ C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\KMICR092\pom.xml.
+2025-06-12 12:17:52,390 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICC092: com.bbva.kmic.dto.payments:KMICC092:0.0.0 with classifier  to /KMICC092/target/classes
+2025-06-12 12:17:52,391 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/kmicc058-release-0.2@ac72d4aa487: com.bbva.kmic.dto.movement:KMICC058:0.2.0 with classifier  to /kmicc058-release-0.2@ac72d4aa487/target/classes
+2025-06-12 12:17:52,532 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:52,533 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\KMICR092\src\main\resources
+2025-06-12 12:17:52,533 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\KMICR092\src\main\resources
+2025-06-12 12:17:52,537 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:52,537 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\KMICR092\src\test\resources
+2025-06-12 12:17:53,913 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICR092: com.bbva.kmic:KMICR092:0.0.0 with classifier  to /KMICR092/target/classes
+2025-06-12 12:17:53,914 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICC092: com.bbva.kmic.dto.payments:KMICC092:0.0.0 with classifier  to /KMICC092/target/classes
+2025-06-12 12:17:53,916 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/kmicc058-release-0.2@ac72d4aa487: com.bbva.kmic.dto.movement:KMICC058:0.2.0 with classifier  to /kmicc058-release-0.2@ac72d4aa487/target/classes
+2025-06-12 12:17:54,228 [Worker-10: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using DEFAULT lifecycle mapping for MavenProject: com.bbva.kmic:KMICR092IMPL:0.0.0 @ C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\KMICR092IMPL\pom.xml.
+2025-06-12 12:17:54,842 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICR092: com.bbva.kmic:KMICR092:0.0.0 with classifier  to /KMICR092/target/classes
+2025-06-12 12:17:54,843 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICC092: com.bbva.kmic.dto.payments:KMICC092:0.0.0 with classifier  to /KMICC092/target/classes
+2025-06-12 12:17:54,845 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/kmicc058-release-0.2@ac72d4aa487: com.bbva.kmic.dto.movement:KMICC058:0.2.0 with classifier  to /kmicc058-release-0.2@ac72d4aa487/target/classes
+2025-06-12 12:17:55,999 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:56,001 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 6 resources
+2025-06-12 12:17:56,021 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:17:56,026 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:17:56,028 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 1 resource
+2025-06-12 12:17:58,360 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICC092: com.bbva.kmic.dto.payments:KMICC092:0.0.0 with classifier  to /KMICC092/target/classes
+2025-06-12 12:17:58,362 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICR092: com.bbva.kmic:KMICR092:0.0.0 with classifier  to /KMICR092/target/classes
+2025-06-12 12:17:58,363 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/kmicc058-release-0.2@ac72d4aa487: com.bbva.kmic.dto.movement:KMICC058:0.2.0 with classifier  to /kmicc058-release-0.2@ac72d4aa487/target/classes
+2025-06-12 12:17:58,575 [Worker-10: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using DEFAULT lifecycle mapping for MavenProject: com.bbva.kmic:KMICJ044-01-ZZ:0.0.0 @ C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\du_reserve_payments\artifact\jobs\KMICJ044-01-ZZ\pom.xml.
+2025-06-12 12:17:59,168 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICC092: com.bbva.kmic.dto.payments:KMICC092:0.0.0 with classifier  to /KMICC092/target/classes
+2025-06-12 12:17:59,169 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICR092: com.bbva.kmic:KMICR092:0.0.0 with classifier  to /KMICR092/target/classes
+2025-06-12 12:17:59,170 [Worker-10: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/kmicc058-release-0.2@ac72d4aa487: com.bbva.kmic.dto.movement:KMICC058:0.2.0 with classifier  to /kmicc058-release-0.2@ac72d4aa487/target/classes
+2025-06-12 12:18:00,003 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:18:00,005 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 5 resources
+2025-06-12 12:18:00,030 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 3 resources
+2025-06-12 12:18:00,056 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:18:00,057 [Worker-10: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 3 resources
+2025-06-12 12:18:00,645 [Worker-27: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using NULL lifecycle mapping for MavenProject: com.bbva.kmic:KMICR060-parent:0.1.4 @ C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicr060-release-0.1@a4b2bc8406f\pom.xml.
+2025-06-12 12:18:00,738 [Worker-27: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using DEFAULT lifecycle mapping for MavenProject: com.bbva.kmic:KMICR060:0.1.4 @ C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicr060-release-0.1@a4b2bc8406f\KMICR060\pom.xml.
+2025-06-12 12:18:00,748 [Worker-27: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/kmicc058-release-0.2@ac72d4aa487: com.bbva.kmic.dto.movement:KMICC058:0.2.0 with classifier  to /kmicc058-release-0.2@ac72d4aa487/target/classes
+2025-06-12 12:18:00,827 [Worker-27: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using DEFAULT lifecycle mapping for MavenProject: com.bbva.kmic:KMICR060IMPL:0.1.4 @ C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\kmicr060-release-0.1@a4b2bc8406f\KMICR060IMPL\pom.xml.
+2025-06-12 12:18:01,247 [Worker-27: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICR060: com.bbva.kmic:KMICR060:0.1.4 with classifier  to /KMICR060/target/classes
+2025-06-12 12:18:01,318 [Worker-27: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/kmicc058-release-0.2@ac72d4aa487: com.bbva.kmic.dto.movement:KMICC058:0.2.0 with classifier  to /kmicc058-release-0.2@ac72d4aa487/target/classes
+2025-06-12 12:18:03,734 [Worker-22: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using DEFAULT lifecycle mapping for MavenProject: com.bbva.kmic:KMICJ044-01-ZZ:0.0.0 @ C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\du_reserve_payments\artifact\jobs\KMICJ044-01-ZZ\pom.xml.
+2025-06-12 12:18:04,140 [Worker-22: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICC092: com.bbva.kmic.dto.payments:KMICC092:0.0.0 with classifier  to /KMICC092/target/classes
+2025-06-12 12:18:04,141 [Worker-22: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/KMICR092: com.bbva.kmic:KMICR092:0.0.0 with classifier  to /KMICR092/target/classes
+2025-06-12 12:18:04,141 [Worker-22: Building] INFO  o.e.m.c.i.p.WorkspaceClassifierResolverManager - Resolving P/kmicc058-release-0.2@ac72d4aa487: com.bbva.kmic.dto.movement:KMICC058:0.2.0 with classifier  to /kmicc058-release-0.2@ac72d4aa487/target/classes
+2025-06-12 12:18:04,708 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:18:04,710 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:18:04,711 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:18:04,717 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:18:04,718 [Worker-22: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:18:18,813 [Worker-25: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:18:18,814 [Worker-25: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:18:18,815 [Worker-25: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:18:18,819 [Worker-25: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:18:18,820 [Worker-25: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:21:55,333 [Worker-30: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:21:55,334 [Worker-30: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:21:55,335 [Worker-30: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:21:55,336 [Worker-30: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:21:55,336 [Worker-30: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:22:15,007 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:22:15,008 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:22:15,008 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:22:15,010 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:22:15,010 [Worker-26: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:33:21,981 [Worker-31: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:33:21,981 [Worker-31: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:33:21,982 [Worker-31: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:33:21,985 [Worker-31: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:33:21,985 [Worker-31: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-12 12:33:23,706 [Worker-34: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-12 12:33:23,707 [Worker-34: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
