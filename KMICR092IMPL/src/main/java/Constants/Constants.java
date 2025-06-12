@@ -7,18 +7,20 @@ public final class Constants {
     }
 
     // Nombres de los properties definidos en el archivo .properties
-    public static final String select_microcredit = "select_microcredit";
-    public static final String update_microcredit = "update_microcredit";
-    public static final String list_dispositionsn = "list_dispositionsn";
-    public static final String update_cont_diposition = "update_cont_diposition";
-    public static final String list_dspn = "list_dspn";
-    public static final String update_dspn = "update_dspn";
-    public static final String list_logs_mov = "list_logs_mov";
-    public static final String list_amort_cond = "list_amort_cond";
-    public static final String update_amort_cond = "update_amort_cond";
+    public static final String MICRO_CREDIT_CONTRACT = "update.microcredit.contract";
+    public static final String AMORTIZATION_CONDITION = "update.amortization.condition";
+    public static final String MCECR_AMORTIZATION = "update.mcecr.amortization";
 
+    // Métodos de acceso si deseas mayor legibilidad en el código
+    public static String getMicrocreditContractUpdate() {
+        return MICRO_CREDIT_CONTRACT;
+    }
 
+    public static String getAmortizationConditionUpdate() {
+        return AMORTIZATION_CONDITION;
+    }
 
+    public static String getMcecrAmortizationUpdate() {
+        return MCECR_AMORTIZATION;
+    }
 }
-
-	

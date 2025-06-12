@@ -6,20 +6,20 @@ import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.FieldSet;
 import org.springframework.validation.BindException;
 
-import com.bbva.kmic.dto.payments.ReservePaymentDto;
+import com.bbva.kmic.dto.payments.ProductInputDTO;
 
-public class KMICProductMapper implements FieldSetMapper<ReservePaymentDto> {
+public class KMICProductMapper implements FieldSetMapper<ProductInputDTO> {
 
 
     @Override
-    public ReservePaymentDto mapFieldSet(FieldSet fieldSet) throws BindException {
-    	ReservePaymentDto dto = new ReservePaymentDto();
+    public ProductInputDTO mapFieldSet(FieldSet fieldSet) throws BindException {
+        ProductInputDTO dto = new ProductInputDTO();
 
         dto.setContractId(fieldSet.readString("contractId"));
-        dto.setContractDisId(fieldSet.readString("microloanId"));
-        dto.setPeriod(fieldSet.readDate("installmentDate", "dd/MM/yyyy"));
+        dto.setMicroloanId(fieldSet.readString("microloanId"));
+        dto.setInstallmentDate(fieldSet.readDate("installmentDate", "dd/MM/yyyy"));
         dto.setAmount(fieldSet.readDouble("amount"));
-        dto.setMovementType(fieldSet.readString("tipoMovimiento"));
+        dto.setTipoMovimiento(fieldSet.readString("tipoMovimiento"));
 
         return dto;
     }

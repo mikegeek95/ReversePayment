@@ -1,148 +1,127 @@
 package com.bbva.kmic.lib.r092.impl;
 
-import com.bbva.kmic.dto.commonmodel.Amount;
+import com.bbva.kmic.dto.payments.ProductInputDTO;
 import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
-import com.bbva.kmic.dto.movementmodel.MicroloanMovementFilter;
-import com.bbva.kmic.dto.payments.ReservePaymentDto;
 import com.bbva.kmic.lib.r060.KMICR060;
-import Utils.Consultas;
-import Utils.MappingMeth;
-import Utils.ReverseCalc;
-
+import com.bbva.apx.exception.db.DBException;
+import com.bbva.elara.configuration.manager.application.ApplicationConfigurationService;
+import com.bbva.elara.utility.jdbc.JdbcUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.*;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import Constants.Constants;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.sql.Date;
+import java.util.Collections;
+import java.util.HashMap;
 
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
+
 
 public class KMICR092ImplTest {
 
-    @InjectMocks
-    private KMICR092Impl kmicr092Impl;
+	 private KMICR092Impl kmicr092Impl;
 
-    @Mock
-    private KMICR060 kmicr060;
-    @Mock
-    private MappingMeth mappingMeth;
-    @Mock
-    private Consultas consultas;
-    @Mock
-    private ReverseCalc reverseCalc;
+	    @Mock
+	    private JdbcUtils jdbcUtils;
+
+	    @Mock
+	    private KMICR060 kmicr060;
+
+    private ProductInputDTO inputDTO;
+
+    private MicroloanMovement microloanMovement;
+    private ApplicationConfigurationService applicationConfigurationService;
 
     @Before
-    public void setUp() {
-    	MockitoAnnotations.initMocks(this);
-    }
-
-    private ReservePaymentDto createPaymentDto(String contractId, String disId, double amount, String dateStr) throws ParseException {
-        ReservePaymentDto dto = new ReservePaymentDto();
-        dto.setContractId(contractId);
-        dto.setContractDisId(disId);
-        dto.setAmount(amount);
-        dto.setPeriod(new SimpleDateFormat("yyyy-MM-dd").parse(dateStr));
-        return dto;
-    }
-
-    private MicroloanMovement createMovement(String contractId, String disId, double amount) {
-        MicroloanMovement mov = new MicroloanMovement();
-        mov.setContractId(contractId);
-        mov.setMicroloanId(disId);
-        Amount amo = new Amount();
-        amo.setAmount(amount);
-        mov.setAmount(amo);
-        return mov;
+    public void setUp() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        MockitoAnnotations.initMocks(this);
+        kmicr092Impl = new KMICR092Impl();
+        kmicr092Impl.setJdbcUtils(jdbcUtils);
+        kmicr092Impl.setKmicR060(kmicr060);
+        
+        inputDTO = new ProductInputDTO();
+        inputDTO.setContractId("MX007400219200001818");
+        inputDTO.setMicroloanId("202408200324351553");
+        inputDTO.setInstallmentDate(Date.valueOf("2024-07-01"));
+        inputDTO.setAmount(1216.33);
+        inputDTO.setTipoMovimiento("PGAUTCON");
+        
+        Method method = KMICR092Impl.class.getDeclaredMethod("executeMapingMicroloanMovement", ProductInputDTO.class);
+        method.setAccessible(true); // 💥 habilita acceso a método privado
+        microloanMovement = (MicroloanMovement) method.invoke(kmicr092Impl, inputDTO);
+        kmicr092Impl.setApplicationConfigurationService(applicationConfigurationService); 
     }
 
     @Test
-    public void testExecuteCheckPayment_whenMatchingMovementFound_shouldUpdateAmount() throws Exception {
-        // Arrange
-        ReservePaymentDto dto = createPaymentDto("C123", "D456", 500.0, "2025-06-01");
-        MicroloanMovementFilter filter = new MicroloanMovementFilter();
-        MicroloanMovement movement = createMovement("C123", "D456", 500.0);
+    public void testExecuteGetReversePayments_success_and_ExceptionFlows() {
+        // Arrange: 
+        when(kmicr060.executeGetMicroloanMovement(any(MicroloanMovement.class)))
+            .thenReturn(new MicroloanMovement());
 
-        when(mappingMeth.mapMicroloanMovementFilter(dto)).thenReturn(filter);
-        when(kmicr060.executeListMicroloansMovements(filter)).thenReturn(Collections.singletonList(movement));
+        when(jdbcUtils.update(eq(Constants.getMicrocreditContractUpdate()), anyMap()))
+            .thenReturn(1);
+        when(jdbcUtils.update(eq(Constants.getMcecrAmortizationUpdate()), anyMap()))
+            .thenReturn(1);
+        when(jdbcUtils.update(eq(Constants.getAmortizationConditionUpdate()), anyMap()))
+            .thenReturn(1);
 
-        KMICR092Impl spyImpl = spy(kmicr092Impl);
-        doReturn(true).when(spyImpl).isMatchingPayment(movement, dto);
-        doNothing().when(spyImpl).executeUpdateAmount(dto, movement);
+        // Act: Ejecutar flujo normal
+        kmicr092Impl.executeGetReversePayments(Collections.singletonList(inputDTO));
 
-        // Act
-        spyImpl.executeCheckPayment(Collections.singletonList(dto));
+        // Assert flujo normal
+        verify(kmicr060, times(1)).executeGetMicroloanMovement(any(MicroloanMovement.class));
+        verify(jdbcUtils, times(1)).update(eq(Constants.getMicrocreditContractUpdate()), anyMap());
+        verify(jdbcUtils, times(1)).update(eq(Constants.getMcecrAmortizationUpdate()), anyMap());
+        verify(jdbcUtils, times(1)).update(eq(Constants.getAmortizationConditionUpdate()), anyMap());
+        
+        // Ahora provocamos el error para cada método
+        reset(jdbcUtils); // Limpia las interacciones anteriores
 
-        // Assert
-        verify(kmicr060).executeListMicroloansMovements(filter);
-        verify(spyImpl).executeUpdateAmount(dto, movement);
+        when(jdbcUtils.update(eq(Constants.getMicrocreditContractUpdate()), anyMap()))
+            .thenThrow(new DBException("Error simulado microcredit"));
+        when(jdbcUtils.update(eq(Constants.getMcecrAmortizationUpdate()), anyMap()))
+            .thenThrow(new DBException("Error simulado amortization"));
+        when(jdbcUtils.update(eq(Constants.getAmortizationConditionUpdate()), anyMap()))
+            .thenThrow(new DBException("Error simulado amortization condition"));
+
+        // Ejecutamos manualmente los métodos de update para provocar el catch
+        int resultMicrocredit = kmicr092Impl.executeUpdateMicrocreditContract(new HashMap<>());
+        int resultDspn = kmicr092Impl.executeUpdateDspnAmort(new HashMap<>());
+        int resultAmortization = kmicr092Impl.executeUpdateAmortizationContition(new HashMap<>());
+
+        // Assert: todos deben regresar 0 al fallar
+        assertEquals(0, resultMicrocredit);
+        assertEquals(0, resultDspn);
+        assertEquals(0, resultAmortization);
+
+        // Verificar que se intentaron las 3 actualizaciones
+        verify(jdbcUtils, times(1)).update(eq(Constants.getMicrocreditContractUpdate()), anyMap());
+        verify(jdbcUtils, times(1)).update(eq(Constants.getMcecrAmortizationUpdate()), anyMap());
+        verify(jdbcUtils, times(1)).update(eq(Constants.getAmortizationConditionUpdate()), anyMap());
     }
 
-    @Test
-    public void testExecuteCheckPayment_whenNoMovements_shouldNotUpdate() throws Exception {
-        // Arrange
-        ReservePaymentDto dto = createPaymentDto("C123", "D456", 500.0, "2025-06-01");
-        MicroloanMovementFilter filter = new MicroloanMovementFilter();
 
-        when(mappingMeth.mapMicroloanMovementFilter(dto)).thenReturn(filter);
-        when(kmicr060.executeListMicroloansMovements(filter)).thenReturn(Collections.emptyList());
 
-        KMICR092Impl spyImpl = spy(kmicr092Impl);
-        doReturn(filter).when(mappingMeth).mapMicroloanMovementFilter(dto);
-
-        // Act
-        spyImpl.executeCheckPayment(Collections.singletonList(dto));
-
-        // Assert
-        verify(kmicr060).executeListMicroloansMovements(filter);
-        verify(spyImpl, never()).executeUpdateAmount(any(), any());
-    }
 
     @Test
-    public void testIsMatchingPayment_shouldReturnTrueWhenAllMatch() {
-        MicroloanMovement movement = createMovement("C001", "M001", 1000.0);
-        ReservePaymentDto dto = new ReservePaymentDto();
-        dto.setContractId("C001");
-        dto.setContractDisId("M001");
-        dto.setAmount(1000.0);
+    public void testExecuteGetReversePayments_whenNoMovementFound() {
+        // Ahora simulamos que KMICR060 no encuentra un movimiento (retorna null)
+        when(kmicr060.executeGetMicroloanMovement(any(MicroloanMovement.class)))
+                .thenReturn(null);
 
-        assertTrue(kmicr092Impl.isMatchingPayment(movement, dto));
-    }
+        // Ejecutamos el método
+        kmicr092Impl.executeGetReversePayments(Collections.singletonList(inputDTO));
 
-    @Test
-    public void testIsMatchingPayment_shouldReturnFalseWhenAmountDiffers() {
-        MicroloanMovement movement = createMovement("C001", "M001", 999.99);
-        ReservePaymentDto dto = new ReservePaymentDto();
-        dto.setContractId("C001");
-        dto.setContractDisId("M001");
-        dto.setAmount(1000.0);
+        // Debe intentar buscar el movimiento
+        verify(kmicr060, times(1)).executeGetMicroloanMovement(any(MicroloanMovement.class));
 
-        assertFalse(kmicr092Impl.isMatchingPayment(movement, dto));
-    }
-
-    @Test
-    public void testIsMatchingPayment_shouldReturnFalseWhenContractIdDiffers() {
-        MicroloanMovement movement = createMovement("C002", "M001", 1000.0);
-        ReservePaymentDto dto = new ReservePaymentDto();
-        dto.setContractId("C001");
-        dto.setContractDisId("M001");
-        dto.setAmount(1000.0);
-
-        assertFalse(kmicr092Impl.isMatchingPayment(movement, dto));
-    }
-
-    @Test
-    public void testIsMatchingPayment_shouldReturnFalseWhenDisIdDiffers() {
-        MicroloanMovement movement = createMovement("C001", "M002", 1000.0);
-        ReservePaymentDto dto = new ReservePaymentDto();
-        dto.setContractId("C001");
-        dto.setContractDisId("M001");
-        dto.setAmount(1000.0);
-
-        assertFalse(kmicr092Impl.isMatchingPayment(movement, dto));
+        // No debe ejecutar ningún update
+        verify(jdbcUtils, never()).update(anyString(), anyMap());
     }
 }
-
-

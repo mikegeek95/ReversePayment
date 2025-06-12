@@ -40,18 +40,3 @@ AND
 AND
     G_MICROCREDIT_MOVEMENT_TYPE = 'PGAUTCON' -- Asumiendo que '01' es el valor para el evento de "DISPOSICIÓN" basado en el nombre del microloanId
 ;
-
-
-okFile=C:/Users/Inetum/Documents/Recursos/PruebaOK.txt,failFile=C:/Users/Inetum/Documents/Recursos/PruebaFail.txt,fileName=C:/Users/Inetum/Documents/Recursos/MMMSF_D02_20250508_MICROCREDITS_RESP.txt,fileDate=20250508
-
-
-
-2023-07-01
-okFile=C:/Users/Inetum/Documents/Recursos/PruebaOK.txt,failFile=C:/Users/Inetum/Documents/Recursos/PruebaFail.txt,fileName=C:/Users/Inetum/Documents/Recursos/MMMSF_D02_20230701_MICROCREDITS_RESP.txt,fileDate=20230701
-
-
-okFile=C:/Users/Inetum/Documents/Recursos/PruebaOK.txt,failFile=C:/Users/Inetum/Documents/Recursos/PruebaFail.txt,fileName=C:/Users/Inetum/Documents/Recursos/MMMSF_D02_20230710_MICROCREDITS_RESP.txt,fileDate=20230710
-
-
-
-okFile=C:/Users/Inetum/Documents/Recursos/PruebaOK.txt,failFile=C:/Users/Inetum/Documents/Recursos/PruebaFail.txt,fileName=C:/Users/Inetum/Documents/Recursos/MMMSF_D02_20230801_MICROCREDITS_RESP.txt,fileDate=20230801

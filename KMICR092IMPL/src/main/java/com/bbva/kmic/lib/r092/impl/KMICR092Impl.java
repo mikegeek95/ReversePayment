@@ -3,20 +3,17 @@ package com.bbva.kmic.lib.r092.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import Utils.*;
-
+import java.sql.Date;
+import com.bbva.kmic.dto.payments.ProductInputDTO;
+import Constants.Constants;
+import com.bbva.apx.exception.db.DBException;
+import com.bbva.kmic.dto.commonmodel.Account;
+import com.bbva.kmic.dto.commonmodel.Amount;
+import com.bbva.kmic.dto.commonmodel.AccountEvent;
 import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
-import com.bbva.kmic.dto.movementmodel.MicroloanMovementFilter;
-import com.bbva.kmic.dto.payments.*;
-
 
 /**
  * The KMICR092Impl class...
@@ -24,204 +21,127 @@ import com.bbva.kmic.dto.payments.*;
 public class KMICR092Impl extends KMICR092Abstract {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(KMICR092Impl.class);
-	private final MappingMeth mapper = new MappingMeth();
-	private final Consultas consult= new Consultas();
-	private final ReverseCalc calc = new ReverseCalc();
-
-	
-
+    
 	/**
 	 * The execute method...
 	 */
 	@Override
-	public void executeCheckPayment(List<ReservePaymentDto> paymentDtoList) {
-		for (ReservePaymentDto paymentDto:paymentDtoList ) {
-	    final MicroloanMovementFilter movement = mapper.mapMicroloanMovementFilter(paymentDto);
-	    LOGGER.info("[KMICR092] Inicia proceso de búsqueda en KMICR060 de ContractID: " + paymentDto.getContractId());
+	public void executeGetReversePayments(List<ProductInputDTO> items) {
+	    for (ProductInputDTO dto : items) {
+	        LOGGER.info("[KMICR92] Línea leída y mapeada en librería: {}", dto.toString());
+ 
+	        MicroloanMovement map = executeMapingMicroloanMovement ( dto );
+	        // Llama ahora que ya está poblado
+	        MicroloanMovement out = kmicR060.executeGetMicroloanMovement(map);
 
-	    List<MicroloanMovement> result = kmicR060.executeListMicroloansMovements(movement);
-	    List<MicroloanMovement> paymentList = new ArrayList<>();
-
-	    if (result != null && !result.isEmpty()) {
-	        for (MicroloanMovement microloanMovement : result) {
-	            LOGGER.info("[KMICR092] ResultList: " + microloanMovement);
-
-	            if (isMatchingPayment(microloanMovement, paymentDto)) {
-	                if (paymentList.isEmpty()) {
-	                    LOGGER.info("[KMICR092] Pago encontrado: " + microloanMovement);
-	                    paymentList.add(microloanMovement);
-	                } else {
-	                    LOGGER.info("[KMICR092] Existe una duplicidad de pago en log payment, termina job");
-	                    break;
-	                }
-	            } else {
-	                logPaymentMismatch(microloanMovement, paymentDto);
-	            }
-	        }
-
-	        if (!paymentList.isEmpty()) {
-	            executeUpdateAmount(paymentDto, paymentList.get(0));
-	        }
-	    } else {
-	        LOGGER.info("[KMICR092] No existen pagos en el período: " + paymentDto.getPeriod());
-	    }
-		}
-	}
-
-	boolean isMatchingPayment(MicroloanMovement movement, ReservePaymentDto dto) {
-	    return (movement.getContractId().equals(dto.getContractId()))
-	        && (movement.getMicroloanId().equals(dto.getContractDisId()))
-	        && (movement.getAmount().getAmount() == dto.getAmount());
-	}
-
-	private void logPaymentMismatch(MicroloanMovement movement, ReservePaymentDto dto) {
-	    if (!movement.getContractId().equals(dto.getContractId())) {
-	        LOGGER.info("[KMICR092] No existe el contrato " + dto.getContractId() + " en el período " + dto.getPeriod());
-	    } else if (!movement.getMicroloanId().equals(dto.getContractDisId())) {
-	        LOGGER.info("[KMICR092] No existe disposición " + dto.getContractDisId() + " en el período " + dto.getPeriod());
-	    } else {
-	        LOGGER.info("[KMICR092] No hay pagos de " + movement.getAmount().getAmount() + " en el período " + dto.getPeriod());
-	    }
-	}
-
-
-	@Override
-	public void executeUpdateAmount(ReservePaymentDto paymentDto, MicroloanMovement movement) {
-
-	    List<MicroloanMovement> accEvents = consult.executeListMovements(movement);
-	    MicrocreditContractDto contractDto = consult.executeGetMicrocredit(paymentDto);
-	    List<ContDispositionDto> dispositionDtos = consult.executeGetDispositions(paymentDto);
-	    List<DspnAmortDto> amortDtos = consult.executeGetDspnAmort(dispositionDtos, movement.getInstallmentDate());
-
-	    contractDto = calc.calculateMicrocredit(contractDto, new BigDecimal(movement.getAmount().getAmount()));
-
-	    BigDecimal reverseAmountTotal = new BigDecimal(movement.getAmount().getAmount());
-	    List<MicroloanMovement> movements = new ArrayList<>();
-
-	    amortDtos = filterAmortWithCredit(amortDtos);
-	    Map<String, DspnAmortDto> amortCatalog = buildAmortCatalog(amortDtos);
-	    dispositionDtos.removeIf(d -> !amortCatalog.containsKey(d.getOperationId()));
-
-	    for (DspnAmortDto amortDto : amortDtos) {
-	        AmortConditionDto amorCond = consult.executeGetAmorCond(amortDto);
-
-	        BigDecimal crAmountPay = BigDecimal.valueOf(amortDto.getCrAmountPay()).setScale(2, RoundingMode.HALF_UP);
-	        BigDecimal saveAmount = crAmountPay;
-	        BigDecimal capitalPay = BigDecimal.ZERO;
-
-	        calc.calculateDisposition(dispositionDtos, saveAmount, amortDto.getOperationId());
-
-	        BigDecimal comision = BigDecimal.valueOf(calc.executeGetAmount(2, accEvents));
-	        BigDecimal iva = BigDecimal.valueOf(calc.executeGetAmount(3, accEvents));
-	        BigDecimal interes = comision.add(iva).setScale(2, RoundingMode.HALF_UP);
-
-	        AmortConditionDto newAmorCon;
-
-	        boolean paymentCapital = false;
-
-	        if (interes.compareTo(saveAmount) >= 0) {
-	            newAmorCon = calc.calculateAmortizationCondition(amorCond, comision, iva);
+	        // Puedes loggear la salida si quieres validar
+	        if (out != null) {
+	            // Se encontró un registro
+	            LOGGER.info("Se encontró un registro: {}", out);
+	            Map<String, Object> args = executeBuildUserParams(map);
+	            executeUpdateMicrocreditContract (args) ;
+	            executeUpdateDspnAmort(args);
+	            executeUpdateAmortizationContition(args);
 	        } else {
-	            newAmorCon = calc.calculateAmortizationCondition(amorCond, comision, iva);
-	            capitalPay = saveAmount.subtract(interes).setScale(2, RoundingMode.HALF_UP);
-
-	            BigDecimal capAmountPay = BigDecimal.valueOf(amortDto.getCapAmountPay()).setScale(2, RoundingMode.HALF_UP);
-	            if (capAmountPay.compareTo(BigDecimal.ZERO) >= 0) {
-	                capAmountPay = capAmountPay.subtract(capitalPay.min(capAmountPay));
-	                amortDto.setCapAmountPay(capAmountPay.doubleValue());
-	                paymentCapital = true;
-	            }
-
-	            amortDto.setCrAmountPay(crAmountPay.doubleValue());
-	            amortDto.setStatusType("PENDING");
+	            // No se encontró ningún registro
+	            LOGGER.info("No se encontró ningún registro.");
 	        }
-
-	        if (paymentCapital) {
-	            movements.add(calc.createLog(2, capitalPay.doubleValue(), movement, amortDto.getOperationId()));
-	        }
-
-	        movements.add(calc.createLog(3, comision.doubleValue(), movement, amortDto.getOperationId()));
-	        movements.add(calc.createLog(4, iva.doubleValue(), movement, amortDto.getOperationId()));
-
-	        reverseAmountTotal = reverseAmountTotal.subtract(saveAmount);
-
-	        consult.updateAmortCond(newAmorCon);
 	    }
-
-	    consult.updateMicroCredit(contractDto);
-	    consult.updateConDispotion(dispositionDtos);
-	    consult.updateDspn(amortDtos);
-	    insertLogs(movements);
 	}
 
-	private List<DspnAmortDto> filterAmortWithCredit(List<DspnAmortDto> amortDtos) {
-	    return amortDtos.stream()
-	        .filter(am -> am.getCrAmountPay() != 0)
-	        .collect(Collectors.toList());
-	}
 
-	private Map<String, DspnAmortDto> buildAmortCatalog(List<DspnAmortDto> amortDtos) {
-	    return amortDtos.stream()
-	        .collect(Collectors.toMap(DspnAmortDto::getOperationId, Function.identity()));
-	}
 
 	
 	@Override
-	public void insertLogs(List<MicroloanMovement> movements) {
-	    int res = kmicR060.executeCreateMicroloanMovements(movements);
-	    if (res == 0) {
-	        LOGGER.info("Problema al insertar Log");
+	public int executeUpdateMicrocreditContract (Map<String, Object> args) {
+		 LOGGER.info("Iniciando actualización de movimiento: {}", args.get("contractId"));
+	        
+	        int result=0;
+
+	        try {
+	        	LOGGER.info("movimiento {} previo a la consulta {}", args,Constants.getMicrocreditContractUpdate());
+	        	result = jdbcUtils.update(Constants.getMicrocreditContractUpdate(), args);
+	            LOGGER.info("movimiento {} actualizado correctamente", args.get("contractId"));
+	            return result;
+	        } catch (DBException e) {
+	            LOGGER.error("Error al actualizar movimiento: {}", args.get("contractId"), e);
+	            return result;
+	        }
+	}
+	
+	
+	private static Map<String, Object> executeBuildUserParams(MicroloanMovement bean){
+	     Map<String, Object> map = new HashMap<>();
+	    LOGGER.debug("Inicio de mapeo: {}");
+	    map.put("contractId", bean.getContractId());
+	    
+	    LOGGER.debug("contractId: {}", bean.getContractId());
+	    map.put("microloanId", bean.getMicroloanId());
+	    map.put("date", new Date(bean.getInstallmentDate().getTime()));
+	    if (bean.getAmount() != null) {
+	        map.put("amount", bean.getAmount().getAmount());
 	    }
+	    if (bean.getAccount() != null && bean.getAccount().getEvent() != null) {
+	        map.put("eventCode", bean.getAccount().getEvent().getCode());
+	    }
+	    LOGGER.debug("Parámetros construidos: {}", map);
+	    return map;
+	}
+
+	private MicroloanMovement executeMapingMicroloanMovement (ProductInputDTO dto ) {
+		MicroloanMovement movimiento = new MicroloanMovement();
+		// Set campos directos
+        movimiento.setContractId(dto.getContractId());
+        movimiento.setMicroloanId(dto.getMicroloanId());
+        movimiento.setInstallmentDate(dto.getInstallmentDate());
+
+        // Set monto (anidado)
+        Amount monto = new Amount();
+        monto.setAmount(dto.getAmount());
+        movimiento.setAmount(monto);
+
+        // Set eventCode (anidado)
+        Account account = new Account();
+        AccountEvent event = new AccountEvent();
+        event.setCode(dto.getTipoMovimiento()); 
+        account.setEvent(event);
+        movimiento.setAccount(account);
+        return movimiento;
+	}
+
+	@Override
+	public int executeUpdateAmortizationContition(Map<String, Object> args) {
+		 LOGGER.info("Iniciando actualización de movimiento: {}", args.get("contractId"));
+	        
+	        int result=0;
+
+	        try {
+	        	LOGGER.info("movimiento {} previo a la consulta {}", args,Constants.getAmortizationConditionUpdate());
+	        	result = jdbcUtils.update(Constants.getAmortizationConditionUpdate(), args);
+	            LOGGER.info("movimiento {} actualizado correctamente", args.get("contractId"));
+	            return result;
+	        } catch (DBException e) {
+	            LOGGER.error("Error al actualizar movimiento: {}", args.get("contractId"), e);
+	            return result;
+	        }
 	}
 
 
-	public MicrocreditContractDto executeGetMicrocredit(ReservePaymentDto paymentDto) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	@Override
+	public int executeUpdateDspnAmort(Map<String, Object> args) {
+		 LOGGER.info("Iniciando actualización de movimiento: {}", args.get("contractId"));
+	        
+	        int result=0;
 
-	public int updateMicroCredit(MicrocreditContractDto contractDto) {
-		// TODO Auto-generated method stub
-		return 0;
+	        try {
+	        	LOGGER.info("movimiento {} previo a la consulta {}", args,Constants.getMcecrAmortizationUpdate());
+	        	result = jdbcUtils.update(Constants.getMcecrAmortizationUpdate(), args);
+	            LOGGER.info("movimiento {} actualizado correctamente", args.get("contractId"));
+	            return result;
+	        } catch (DBException e) {
+	            LOGGER.error("Error al actualizar movimiento: {}", args.get("contractId"), e);
+	            return result;
+	        }
 	}
-
-	public List<ContDispositionDto> executeGetDispositions(ReservePaymentDto paymentDto) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public int updateConDispotion(List<ContDispositionDto> dispositionDtos) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	public List<DspnAmortDto> executeGetDspnAmort(List<ContDispositionDto> dispositionDtos,
-			java.util.Date paymentPeriod) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public int updateDspn(List<DspnAmortDto> amortDtos) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	public List<MicroloanMovement> executeListMovements(MicroloanMovement movement) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public AmortConditionDto executeGetAmorCond(DspnAmortDto dspnAmortDto) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public int updateAmortCond(AmortConditionDto newAmorCon) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
 
 }
-
-

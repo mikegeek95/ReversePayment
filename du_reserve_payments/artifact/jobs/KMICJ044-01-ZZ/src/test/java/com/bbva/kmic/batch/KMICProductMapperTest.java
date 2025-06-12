@@ -1,6 +1,6 @@
 package com.bbva.kmic.batch;
 
-import com.bbva.kmic.dto.payments.ReservePaymentDto;
+import com.bbva.kmic.dto.payments.ProductInputDTO;
 import org.junit.Test;
 import org.springframework.batch.item.file.transform.DefaultFieldSet;
 import org.springframework.batch.item.file.transform.FieldSet;
@@ -21,17 +21,17 @@ public class KMICProductMapperTest {
 
         FieldSet fieldSet = new DefaultFieldSet(values, names);
 
-        ReservePaymentDto dto = mapper.mapFieldSet(fieldSet);
+        ProductInputDTO dto = mapper.mapFieldSet(fieldSet);
 
         assertNotNull(dto);
         assertEquals("MX007400219200001818", dto.getContractId());
-        assertEquals("202408200324351553", dto.getContractDisId());
+        assertEquals("202408200324351553", dto.getMicroloanId());
         
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         Date expectedDate = sdf.parse("01/07/2024");
-        assertEquals(expectedDate, dto.getPeriod());
+        assertEquals(expectedDate, dto.getInstallmentDate());
         
         assertEquals(1216.33, dto.getAmount(), 0.001);
-        
+        assertEquals("PGAUTCON", dto.getTipoMovimiento());
     }
 }

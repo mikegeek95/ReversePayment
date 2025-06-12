@@ -1,6 +1,6 @@
 package com.bbva.kmic.batch;
 
-import com.bbva.kmic.dto.payments.ReservePaymentDto;
+import com.bbva.kmic.dto.payments.ProductInputDTO;
 import com.bbva.kmic.lib.r092.KMICR092;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,12 +27,12 @@ public class KMICProductWriterTest {
 
     @Test
     public void testWrite_success() throws Exception {
-    	ReservePaymentDto dto = new ReservePaymentDto();
+        ProductInputDTO dto = new ProductInputDTO();
         dto.setContractId("MX007400219200001818");
 
         writer.write(Collections.singletonList(dto));
 
-        verify(kmicR092, times(1)).executeCheckPayment(anyList());
+        verify(kmicR092, times(1)).executeGetReversePayments(anyList());
     }
 }
 

@@ -4,10 +4,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemWriter;
-import com.bbva.kmic.dto.payments.ReservePaymentDto;
+import com.bbva.kmic.dto.payments.ProductInputDTO;
 import com.bbva.kmic.lib.r092.KMICR092;
 
-public class KMICProductWriter implements ItemWriter<ReservePaymentDto> {
+public class KMICProductWriter implements ItemWriter<ProductInputDTO> {
 
     private static final Logger LOG = LoggerFactory.getLogger(KMICProductWriter.class);
     
@@ -18,17 +18,15 @@ public class KMICProductWriter implements ItemWriter<ReservePaymentDto> {
     }
     
     @Override
-    public void write(List<? extends ReservePaymentDto> items) throws Exception {
+    public void write(List<? extends ProductInputDTO> items) throws Exception {
     	LOG.info("[KMICJ044-01-ZZ] Se procesarán {} registros", items.size());
-        for (ReservePaymentDto dto : items) {
+        for (ProductInputDTO dto : items) {
             LOG.info("[KMICJ044-01-ZZ] Línea leída y mapeada: {}", dto.toString());
             
         }
         @SuppressWarnings("unchecked")
-        List<ReservePaymentDto> castedItems = (List<ReservePaymentDto>) items;
-       
-		kmicR092.executeCheckPayment(castedItems);
-        
+        List<ProductInputDTO> castedItems = (List<ProductInputDTO>) items;
+		kmicR092.executeGetReversePayments(castedItems);
     }
 }
 

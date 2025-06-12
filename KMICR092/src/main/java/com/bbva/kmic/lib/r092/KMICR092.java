@@ -1,15 +1,8 @@
 package com.bbva.kmic.lib.r092;
 
-import java.util.Date;
 import java.util.List;
-
-
-import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
-import com.bbva.kmic.dto.payments.ContDispositionDto;
-import com.bbva.kmic.dto.payments.DspnAmortDto;
-import com.bbva.kmic.dto.payments.MicrocreditContractDto;
-import com.bbva.kmic.dto.payments.ReservePaymentDto;
-import com.bbva.kmic.dto.payments.AmortConditionDto;
+import java.util.Map;
+import com.bbva.kmic.dto.payments.ProductInputDTO;
 
 /**
  * The  interface KMICR092 class...
@@ -19,14 +12,9 @@ public interface KMICR092 {
 	/**
 	 * The execute method...
 	 */
-	
-	void executeCheckPayment(List<ReservePaymentDto> paymentDtoList);
-
-	void executeUpdateAmount(ReservePaymentDto paymentDto, MicroloanMovement movement);
-
-	void insertLogs(List<MicroloanMovement> movements);
-
-	
-
+	void executeGetReversePayments( List<ProductInputDTO> items);
+	 int executeUpdateMicrocreditContract (Map<String, Object> args);
+	 int executeUpdateAmortizationContition (Map<String, Object> args);
+	 int executeUpdateDspnAmort (Map<String, Object> args);
 
 }
