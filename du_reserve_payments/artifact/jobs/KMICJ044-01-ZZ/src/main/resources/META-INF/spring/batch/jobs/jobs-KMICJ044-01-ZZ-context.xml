@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns="http://www.springframework.org/schema/batch"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="
+               http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+               http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
+
+  <job id="KMICJ044-01-ZZ" incrementer="defaultIncrementer" job-repository="jobRepository">
+    <description>severse payment</description>
+
+    <step id="step-read-archivo">
+      <tasklet>
+        <chunk reader="itemReader" writer="itemWriter" commit-interval="1"/>
+      </tasklet>
+      <next on="COMPLETED" to="step-delete-archivo"/>
+    </step>
+
+    <step id="step-delete-archivo">
+      <tasklet ref="deleteInputFile"/>
+    </step>
+  </job>
+</beans:beans>

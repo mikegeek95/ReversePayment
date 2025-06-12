@@ -1,0 +1,213 @@
+package Utils;
+
+import com.bbva.kmic.dto.commonmodel.*;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovementFilter;
+import com.bbva.kmic.dto.payments.*;
+
+import java.sql.Timestamp;
+import java.util.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
+public class MappingMeth {
+
+    public Map<String, Object> mapingMicrocredit(ReservePaymentDto paymentDto) {
+        Map<String, Object> mapSelectMicro = new HashMap<>();
+        mapSelectMicro.put("contractId", paymentDto.getContractId());
+        return mapSelectMicro;
+    }
+
+    public MicrocreditContractDto mapMicrocreditContract(Map<String, Object> contract) {
+        MicrocreditContractDto dto = new MicrocreditContractDto();
+        dto.setContractId(asString(contract.get("G_CONTRACT_ID")));
+        dto.setContractStatus(asString(contract.get("G_MCRCR_CONTRACT_STATUS_TYPE")));
+        dto.setGrantedAmount(asDouble(contract.get("GF_GRANTED_AMOUNT")));
+        dto.setDrwdnAmount(asDouble(contract.get("GF_DRAWN_AMOUNT")));
+        dto.setAvailableAmount(asDouble(contract.get("GF_AVAILABLE_AMOUNT")));
+        return dto;
+    }
+
+    public Map<String, Object> mapingMicroCredit(MicrocreditContractDto dto) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("drawnAmount", dto.getDrwdnAmount());
+        map.put("availableAmount", dto.getAvailableAmount());
+        map.put("contractId", dto.getContractId());
+        map.put("contractStatusType", dto.getContractStatus());
+        return map;
+    }
+
+    public List<ContDispositionDto> mapDispositions(List<Map<String, Object>> dispo) {
+        if (dispo == null || dispo.isEmpty()) return Collections.emptyList();
+        List<ContDispositionDto> list = new ArrayList<>();
+        for (Map<String, Object> map : dispo) {
+            ContDispositionDto dto = new ContDispositionDto();
+            dto.setContractId(asString(map.get("G_CONTRACT_ID")));
+            dto.setOperationId(asString(map.get("GF_OPERATION_PAGE_ID")));
+            dto.setDrwdnAmount(asDouble(map.get("GF_DRAWDOWN_AMOUNT")));
+            dto.setTermNumber(asString(map.get("GF_CR_REQUEST_TERM_NUMBER")));
+            dto.setStatusType(asString(map.get("G_MCRCR_DSPN_STATUS_TYPE")));
+            dto.setDrwdnTotal(asDouble(map.get("GF_DRAWDOWN_TOTAL_AMOUNT")));
+            dto.setRecoveredTotal(asDouble(map.get("GF_CR_RECOVERED_TOTAL_AMOUNT")));
+            dto.setRepaymentAmount(asDouble(map.get("GF_REPAYMENT_OUTSTD_AMOUNT")));
+            list.add(dto);
+        }
+        return list;
+    }
+
+    public Map<String, Object> mappingDispositions(ReservePaymentDto paymentDto) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("contractId", paymentDto.getContractId());
+        return map;
+    }
+
+    public Map<String, Object> mappingConDispotion(ContDispositionDto dto) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("pagado", dto.getRecoveredTotal());
+        map.put("porPagar", dto.getRepaymentAmount());
+        map.put("contractId", dto.getContractId());
+        map.put("operationPageId", dto.getOperationId());
+        return map;
+    }
+
+    public Map<String, Object> buildDspnAmortParams(ContDispositionDto dto, Date paymentPeriod) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("contractId", dto.getContractId());
+        map.put("contractDisId", dto.getOperationId());
+        map.put("instDate", paymentPeriod);
+        return map;
+    }
+
+    public List<DspnAmortDto> mapDspnAmorts(List<Map<String, Object>> amorts) {
+        if (amorts == null || amorts.isEmpty()) return Collections.emptyList();
+        List<DspnAmortDto> list = new ArrayList<>();
+        for (Map<String, Object> map : amorts) {
+            DspnAmortDto dto = new DspnAmortDto();
+            dto.setContractId(asString(map.get("G_CONTRACT_ID")));
+            dto.setOperationId(asString(map.get("GF_OPERATION_PAGE_ID")));
+            dto.setStatusType(asString(map.get("G_MCRCR_AMORT_STATUS_TYPE")));
+            dto.setSequenceId(asString(map.get("GF_SEQUENCE_ID")));
+            dto.setItemDate((Date) map.get("GF_ITEM_SETTLEMENT_DATE"));
+            dto.setCapAmountTotal(asDouble(map.get("GF_CAP_AMORTIZ_INSTLMNT_AMOUNT")));
+            dto.setCapAmountPay(asDouble(map.get("GF_AMORT_CAPITAL_AMOUNT")));
+            dto.setCrAmountTotal(asDouble(map.get("GF_CREDIT_AMORTIZED_AMOUNT")));
+            dto.setCrAmountPay(asDouble(map.get("GF_DRWDN_AMORT_TRADE_AMOUNT")));
+            list.add(dto);
+        }
+        return list;
+    }
+
+    public Map<String, Object> buildUpdateDspnParams(DspnAmortDto dto) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("drwdnAmortTradeAmount", dto.getCrAmountPay());
+        map.put("amortCapitalAmount", dto.getCapAmountPay());
+        map.put("mcrcrAmortStatusType", dto.getStatusType());
+        map.put("contractId", dto.getContractId());
+        map.put("operationPageId", dto.getOperationId());
+        map.put("itemSettlementDate", dto.getItemDate());
+        return map;
+    }
+
+    public Map<String, Object> buildListMovementsParams(MicroloanMovement movement) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("acctMov", movement.getAccount().getNumber());
+        return map;
+    }
+
+    public List<MicroloanMovement> mapListMicroloanMovement(final List<Map<String, Object>> resultSet) {
+        if (resultSet == null || resultSet.isEmpty()) return Collections.emptyList();
+        List<MicroloanMovement> list = new ArrayList<>();
+        resultSet.forEach(row -> list.add(mapMicroloanMovement(row)));
+        return list;
+    }
+
+    public static MicroloanMovement mapMicroloanMovement(final Map<String, Object> row) {
+        final MicroloanMovement mm = new MicroloanMovement();
+        mm.setAmount(new Amount());
+        mm.setAccount(new Account());
+        mm.getAccount().setEvent(new AccountEvent());
+        mm.getAccount().getEvent().setRegionalCenter(new RegionalCenter());
+        mm.setRelatedContract(new RelatedContract());
+        mm.setAudit(new Audit());
+
+        mm.setContractId(asString(row.get("G_CONTRACT_ID")));
+        mm.setDate((Date) row.get("GF_MOV_DATE"));
+        mm.setNumber(asInt(row.get("GF_SEQUENCE_ID")));
+        mm.setMicroloanId(asString(row.get("GF_OPERATION_PAGE_ID")));
+        mm.getAccount().setNumber(asString(row.get("GF_ACCT_MOV_ID")));
+        mm.getAccount().getEvent().setCode(asString(row.get("G_MICROCREDIT_MOVEMENT_TYPE")));
+        mm.getAmount().setAmount(asDouble(row.get("GF_MOVEMENT_AMOUNT")));
+        mm.getAmount().setCurrency(asString(row.get("G_CURRENCY_ID")));
+        mm.getAccount().getEvent().setStatus(asString(row.get("G_ACTIVE_MOVEMENT_IND_TYPE")));
+        mm.getAccount().setDate((Date) row.get("GF_GL_ACCOUNT_DATE"));
+        mm.setInstallmentDate((Date) row.get("GF_INSTALLMENT_PERIOD_DATE"));
+        mm.getAccount().setCoded(asString(row.get("GF_GL_ACCOUNTING_STRING_ID")));
+        mm.getRelatedContract().setContractType(asString(row.get("G_LOCAL_CONTRACT_TYPE")));
+        mm.getRelatedContract().setNumber(asString(row.get("GF_MOV_ASSO_ACCOUNT_ID")));
+        mm.setInterbankTrackingDescription(asStringNullable(row.get("GF_TRACKING_TRANSACTION_DESC")));
+        mm.getAccount().setPositionNumber(asStringNullable(row.get("GF_ACCOUNTING_POSITION_ID")));
+        mm.getAccount().getEvent().getRegionalCenter()
+                .setDestiny(asStringNullable(row.get("GF_NEW_CUST_REGIONAL_CENTRE_ID")));
+        mm.setChannelCode(asString(row.get("GF_APP_CHANNEL_ID")));
+        mm.getAccount().getEvent().getRegionalCenter()
+                .setOperative(asString(row.get("GF_CUSTOMER_PROPOSAL_BRANCH_ID")));
+        mm.getAccount().getEvent().getRegionalCenter()
+                .setOrigin(asString(row.get("GF_CREDIT_REQUEST_ORIGIN_RC_ID")));
+        mm.getAudit().setUserCode(asString(row.get("GF_USER_AUDIT_ID")));
+
+        Timestamp ts = (Timestamp) row.get("GF_AUDIT_DATE");
+        Calendar date = Calendar.getInstance();
+        if (ts != null) date.setTimeInMillis(ts.getTime());
+        mm.getAudit().setTimestamp(date);
+
+        return mm;
+    }
+
+    public Map<String, Object> buildAmortConditionParams(DspnAmortDto dto) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("contractId", dto.getContractId());
+        map.put("operationId", dto.getOperationId());
+        map.put("instDate", dto.getItemDate());
+        return map;
+    }
+
+    public AmortConditionDto mapAmortCondition(Map<String, Object> result) {
+        AmortConditionDto dto = new AmortConditionDto();
+        dto.setContractId(asString(result.get("G_CONTRACT_ID")));
+        dto.setOperationId(asString(result.get("GF_OPERATION_PAGE_ID")));
+        dto.setItmDate((Date) result.get("GF_ITEM_SETTLEMENT_DATE"));
+        dto.setStatusType(asString(result.get("G_MCRCR_AMORT_STATUS_TYPE")));
+        dto.setEcondAmount(asDouble(result.get("GF_APPLIED_ECON_COND_AMOUNT")));
+        dto.setFeeAmount(asDouble(result.get("GF_INSTLMNT_FEE_RCOVR_AMOUNT")));
+        return dto;
+    }
+
+    // --- Métodos auxiliares privados para casting seguro ---
+
+    private static String asString(Object obj) {
+        return obj != null ? obj.toString() : "";
+    }
+
+    private static String asStringNullable(Object obj) {
+        return obj != null ? obj.toString() : null;
+    }
+
+    private static double asDouble(Object obj) {
+        try {
+            return obj != null ? Double.parseDouble(obj.toString()) : 0.0;
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+    }
+
+    private static int asInt(Object obj) {
+        try {
+            return obj != null ? Integer.parseInt(obj.toString()) : 0;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+}
+

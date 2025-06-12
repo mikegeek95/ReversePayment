@@ -1,0 +1,23 @@
+package Constants;
+
+
+
+public final class Constants {
+
+    private Constants() { }
+
+    public static final String SELECT_MICROCREDIT = "select_microcredit";
+    public static final String UPDATE_MICROCREDIT = "update_microcredit";
+
+    public static final String LIST_DISPOSITIONS = "list_dispositions";
+    public static final String UPDATE_CONT_DISPOSITION = "update_cont_diposition";
+
+    public static final String LIST_DSPN = "list_dspn";
+    public static final String UPDATE_DSPN = "update_dspn";
+
+    public static final String SELECT_LAST_PAYMENT = "select_last_payment"; // opcional
+    public static final String LIST_LOGS_MOV = "list_logs_mov";
+
+    public static final String LIST_AMORT_COND = "list_amort_cond";
+    public static final String UPDATE_AMORT_COND = "update_amort_cond";
+}

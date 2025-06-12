@@ -1,0 +1,208 @@
+package com.bbva.kmic.lib.r092.impl;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.sql.Date;
+import com.bbva.kmic.dto.commonmodel.Account;
+import com.bbva.kmic.dto.commonmodel.Amount;
+import com.bbva.kmic.dto.commonmodel.AccountEvent;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+import com.bbva.kmic.dto.payments.*;
+
+
+/**
+ * The KMICR092Impl class...
+ */
+public class KMICR092Impl extends KMICR092Abstract {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(KMICR092Impl.class);
+
+	
+
+	/**
+	 * The execute method...
+	 */
+	@Override
+	public void executeGetReversePayments(List<ProductInputDTO> items) {
+	    for (ProductInputDTO dto : items) {
+	        LOGGER.info("[KMICR92] Línea leída y mapeada en librería: {}", dto.toString());
+ 
+	        MicroloanMovement map = executeMapingMicroloanMovement ( dto );
+	        // Llama ahora que ya está poblado
+	        MicroloanMovement out = kmicR060.executeGetMicroloanMovement(map);
+
+	        // Puedes loggear la salida si quieres validar
+	        if (out != null) {
+	            // Se encontró un registro
+	            LOGGER.info("Se encontró un registro: {}", out);
+	            //Map<String, Object> args = executeBuildUserParams(map);
+	            //executeUpdateMicrocreditContract (args) ;
+	            //executeUpdateDspnAmort(args);
+	            //executeUpdateAmortizationContition(args);
+	            insertLogs(executeUpdateAmount(dto1,dt2)):
+	        } else {
+	            // No se encontró ningún registro
+	            LOGGER.info("No se encontró ningún registro.");
+	        }
+	    }
+	}
+
+
+
+	
+
+	
+	
+
+
+	private boolean validateSamePayment(MicroloanMovement movement, Map<String, Object> lastMovement) {
+
+		if (!movement.getContractId().equals(lastMovement.get("G_CONTRACT_ID"))
+				&& movement.getContractId() != lastMovement.get("G_CONTRACT_ID"))
+			return false;
+		if (!movement.getMicroloanId().equals(lastMovement.get("GF_OPERATION_PAGE_ID"))
+				&& movement.getMicroloanId() != lastMovement.get("GF_OPERATION_PAGE_ID"))
+			return false;
+		if (!movement.getDate().equals((Date) lastMovement.get("GF_MOV_DATE"))
+				&& movement.getDate() != (Date) lastMovement.get("GF_MOV_DATE"))
+			return false;
+
+		return true;
+	}
+
+
+
+	public void insertLogs(List<MicroloanMovement> movements) {
+		int res = kmicR060.executeCreateMicroloanMovements(movements);
+		if (res == 0) {
+			LOGGER.info("Problema al insertar Log");
+		}
+	}
+
+
+
+	@Override
+	public MicrocreditContractDto executeGetMicrocredit(ReservePaymentDto paymentDto) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+
+
+
+
+	@Override
+	public int updateMicroCredit(MicrocreditContractDto contractDto) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+
+
+
+
+
+	@Override
+	public List<ContDispositionDto> executeGetDispositions(ReservePaymentDto paymentDto) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+
+
+
+
+	@Override
+	public int updateConDispotion(List<ContDispositionDto> dispositionDtos) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	@Override
+	public int updateDspn(List<DspnAmortDto> amortDtos) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+
+
+
+
+
+	@Override
+	public List<MicroloanMovement> executeListMovements(MicroloanMovement movement) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+
+
+
+
+	@Override
+	public AmortConditionDto executeGetAmorCond(DspnAmortDto dspnAmortDto) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+
+
+
+
+	@Override
+	public int updateAmortCond(AmortConditionDto newAmorCon) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+
+
+
+
+
+
+
+	@Override
+	public List<DspnAmortDto> executeGetDspnAmort(List<ContDispositionDto> dispositionDtos,
+			java.util.Date paymentPeriod) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+
+
+
+
+}
+
+

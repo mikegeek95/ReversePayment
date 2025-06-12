@@ -1,0 +1,35 @@
+package com.bbva.kmic.batch;
+
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.batch.item.ItemWriter;
+import com.bbva.kmic.dto.payments.ReservePaymentDto;
+import com.bbva.kmic.lib.r092.KMICR092;
+
+public class KMICProductWriter implements ItemWriter<ReservePaymentDto> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(KMICProductWriter.class);
+    
+    private KMICR092 kmicR092;
+
+    public void setKmicR092(KMICR092 kmicR092) {
+        this.kmicR092 = kmicR092;
+    }
+    
+    @Override
+    public void write(List<? extends ReservePaymentDto> items) throws Exception {
+    	LOG.info("[KMICJ044-01-ZZ] Se procesarán {} registros", items.size());
+        for (ReservePaymentDto dto : items) {
+            LOG.info("[KMICJ044-01-ZZ] Línea leída y mapeada: {}", dto.toString());
+            
+        }
+        @SuppressWarnings("unchecked")
+        List<ReservePaymentDto> castedItems = (List<ReservePaymentDto>) items;
+        for (ReservePaymentDto paymentDto : castedItems) {
+		kmicR092.executeCheckPayment(castedItems);
+        }
+    }
+}
+
+

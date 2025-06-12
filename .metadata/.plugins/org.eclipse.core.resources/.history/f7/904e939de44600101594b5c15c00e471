@@ -1,0 +1,124 @@
+package com.bbva.kmic.lib.r092.impl;
+
+import com.bbva.kmic.dto.commonmodel.*;
+import com.bbva.kmic.dto.movementmodel.*;
+import com.bbva.kmic.dto.payments.*;
+import com.bbva.kmic.lib.r060.KMICR060;
+
+import Utils.*;
+
+import org.junit.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+
+import static org.mockito.Mockito.*;
+
+class KMICR092ImplTest {
+
+    @InjectMocks
+    private KMICR092Impl kmicr092;
+
+    @Mock
+    private MappingMeth mapper;
+    @Mock
+    private Consultas consult;
+    @Mock
+    private ReverseCalc calc;
+    @Mock
+    private KMICR060 kmicR060;
+    @Mock
+    private Logger logger;
+
+    private ReservePaymentDto paymentDto;
+    private MicroloanMovementFilter filter;
+    private MicroloanMovement movement;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        paymentDto = new ReservePaymentDto();
+        paymentDto.setContractId("CID123");
+        paymentDto.setContractDisId("DID456");
+        paymentDto.setAmount(1000.0);
+        filter = new MicroloanMovementFilter();
+        movement = new MicroloanMovement();
+        movement.setContractId("CID123");
+        movement.setMicroloanId("DID456");
+        movement.setAmount(new Amount(1000.0));
+        movement.setInstallmentDate(new java.util.Date());
+    }
+
+    @Test
+    void executeCheckPayment_foundAndUpdated() {
+        when(mapper.mapMicroloanMovementFilter(any())).thenReturn(filter);
+        when(kmicR060.executeListMicroloansMovements(filter)).thenReturn(Collections.singletonList(movement));
+
+        doNothing().when(kmicr092).executeUpdateAmount(eq(paymentDto), eq(movement));
+
+        kmicr092.kmicR060 = kmicR060; // explicitly injecting mock
+        kmicr092.executeCheckPayment(Collections.singletonList(paymentDto));
+
+        verify(kmicR060).executeListMicroloansMovements(any());
+        verify(kmicr092).executeUpdateAmount(eq(paymentDto), eq(movement));
+    }
+
+    @Test
+    void executeCheckPayment_noPaymentsFound() {
+        when(mapper.mapMicroloanMovementFilter(any())).thenReturn(filter);
+        when(kmicR060.executeListMicroloansMovements(filter)).thenReturn(new ArrayList<>());
+
+        kmicr092.kmicR060 = kmicR060;
+        kmicr092.executeCheckPayment(Collections.singletonList(paymentDto));
+
+        verify(kmicR060).executeListMicroloansMovements(any());
+        verify(kmicr092, never()).executeUpdateAmount(any(), any());
+    }
+
+    @Test
+    void isMatchingPayment_correctlyMatches() {
+        boolean result = kmicr092.isMatchingPayment(movement, paymentDto);
+        assertTrue(result);
+    }
+
+    @Test
+    void executeUpdateAmount_shouldCallUpdateMethods() {
+        List<MicroloanMovement> accEvents = new ArrayList<>();
+        List<ContDispositionDto> dispositions = new ArrayList<>();
+        List<DspnAmortDto> amortList = new ArrayList<>();
+        DspnAmortDto amort = new DspnAmortDto();
+        amort.setCrAmountPay(1000.0);
+        amort.setCapAmountPay(500.0);
+        amort.setOperationId("OP789");
+        amortList.add(amort);
+
+        MicrocreditContractDto contract = new MicrocreditContractDto();
+        AmortConditionDto amorCond = new AmortConditionDto();
+
+        when(consult.executeListMovements(movement)).thenReturn(accEvents);
+        when(consult.executeGetMicrocredit(paymentDto)).thenReturn(contract);
+        when(consult.executeGetDispositions(paymentDto)).thenReturn(dispositions);
+        when(consult.executeGetDspnAmort(dispositions, movement.getInstallmentDate())).thenReturn(amortList);
+        when(consult.executeGetAmorCond(any())).thenReturn(amorCond);
+
+        when(calc.calculateMicrocredit(contract, new BigDecimal(1000.0))).thenReturn(contract);
+        when(calc.executeGetAmount(eq(2), any())).thenReturn(100.0);
+        when(calc.executeGetAmount(eq(3), any())).thenReturn(50.0);
+        when(calc.calculateAmortizationCondition(any(), any(), any())).thenReturn(amorCond);
+        when(calc.createLog(anyInt(), anyDouble(), any(), any())).thenReturn(new MicroloanMovement());
+
+        kmicr092.executeUpdateAmount(paymentDto, movement);
+
+        verify(consult).updateMicroCredit(contract);
+        verify(consult).updateDspn(any());
+        verify(consult).updateConDispotion(any());
+        verify(consult).updateAmortCond(any());
+    }
+}

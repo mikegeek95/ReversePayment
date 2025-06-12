@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context" 
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/context
+						http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/tx 
+						http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<!-- KMICJ044-01-ZZ-beans.xml -->
+	
+	<!-- Transaction manager -->
+	<bean id="transactionManager" class="org.springframework.batch.support.transaction.ResourcelessTransactionManager"/>
+
+	<!-- Permite definir beans con scope de step -->
+	<bean class="org.springframework.batch.core.scope.StepScope"/>
+
+	<!-- Job launcher -->
+	<bean id="jobLauncher" class="com.bbva.elara.batch.launcher.SimpleJobLauncherBean">
+		<property name="job" ref="KMICJ044-01-ZZ"/>
+		<property name="batchLauncher" ref="batchLauncher"/>
+		<property name="defaultIncrementer" ref="defaultIncrementer"/>
+	</bean>
+
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+	
+	<bean id="pathUtils" class="com.bbva.kmic.util.PathUtils"/>
+
+	<!-- Reader: Lee archivo pipe -->
+	<bean id="processFileLineMapper" class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+		<property name="lineTokenizer">
+			<bean class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
+				<property name="strict" value="false"/>
+				<property name="names"
+						  value="productId,productVersionId,productDesc,mainProductId,mainProductDesc,custTargetType,accountingProductIndType,
+								 mcrcrPaymentPdicyType,productReferencetype,minimumRefFactorNumber,maximumRefFactorNumber,currencyId,minProductAmount,
+								 maxProductAmount,mcrcrTimeMeasureType,crRequestMinTermNumber,crRequestMaxTermNumber,singleDisposalIndType,automaticRenewalIndType,
+								 revolvingCreditIndType,productPaymentOrderType,productAmortizationType,productStatusType,
+								PAYMENT_ORDER,
+									paymentOrderType, paymentOrderTypeName,
+								CONCEPT_EVENT,
+									eventId, eventName,
+								PAYMENT_SCHEDULE,
+									paymentScheduleId, payDayFixedMonthDayId, dayWeekPaymentId,
+								CONDITION_CONCEPT,
+									conditionConceptId, conditionConceptName, conditionConceptEventId,
+								CONCEPT_PAYMENT_ORDER,
+									conceptPaymentOrderType, conditionConceptid, paymentOrderNumberId,
+								CTP_CONDITION_CONF,
+									cptConditionConceptId, cptConditionVersion, cptCurrencyId, cptMinimumAmount, cptMaximumAmount,
+									conditionMinimumAmountPer, conditionMaximumAmountPer, cptThptyOperPrtcpPer, cptConditionTaxPer, cptConditionStatusType,
+								PRODUCT_OFFER,
+									productOfferId, effectiveStartDate, effectiveEndDate,productStatusTypeof,
+								OFFER_PAYMENT_SCHEDULE,
+									offerPaymentScheduleOfferId, offerPaymentScheduleId, offerPaymentPayDayFixedMonthDayId, offerPaymentDayWeekPaymentId,
+								PRODUCT_OFFER_CONDITION,
+									prodOfferId,productOfferConditionId,conditionConceptIdp,conditionVersionId,productOfferConditionCurrencyId,
+									productOfferConditionAmount, productOfferConditionPercent,thptyOperPrtcpPer, conditionTaxPercent,
+									offerConditionmcrcrTimeMeasureType,crRequestTermNumber,productOfferConditionEffectiveStartDate,productOfferConditionEffectiveEndDate,
+								MOVEMENT_TYPE,
+									movementType,movementTypeDesc,accountingIndType,operationsId,positionId,
+								MICROCREDIT_CONTRACT,
+									contractIdMC, localContractIdMC, productOfferIdMC, contractDateMC, effectiveEndDateMC,
+									contractStatusMC, contractStatusDateMC, currencyIdMC, grantedAmountMC, drawnAmountMC,
+									availableAmountMC, overdueBalanceAmountMC, paymentOrderTypeMC, debtRatioCoefficientTypeMC, debtRatioCoefChangeDateMC,
+									pymtDirectDebitedTypeMC, offeredProductCatPerMC, microcredictArrearsNumberMC, appChannelIdMC, customerProposalBranchIdMC,
+									credictRequestOriginRcIdMC, lastChangeBranchIdMC, userAuditIdMC,
+									firstPaymentDateMC, productIdMC, objetiveDebtStatusMC, objetiveDebtStatusDateMC, subjetiveDebtStatusMC, subjetiveDebtStatusDateMC,
+								CONTRACT_CONDITION,
+									contractIdCC, acctMovIdCC, itemSettlementDateCC, sequenceIdCC, operationPageIdCC,
+									productOfferIdCC, productOfferConditionIdCC, productIdCC, conditionConceptIdCC, conditionVersionIdCC,
+									conditionPerCC, mcrcrContCondStatusTypeCC, appliedEconCondPerCC, currencyIdCC, conditionAmountCC,
+									appliedEconCondAmountCC, instlmntFeeRcovrAmountCC, thptyOperPrtcpPerCC, thptyOperPrtcpAmountCC, thptyOperPrtcpRecAmountCC,
+									conditionTaxPerCC, taxCurncyAmountCC, recoveredTaxAmountCC, appChannelIdCC, creditRequestOriginCC,
+									customerProsalBranchIdCC, userAuditIdCC,
+								AMORTIZATION_CONDITION,
+									contractIdAC, operationPageIdAC, sequenceIdAC, productOfferIdAC, productOfferConditionIdAC,
+									productIdAC, itemSettlementDateAC, currencyIdAC, conditionConceptIdAC, conditionVersionIdAC,
+									mcrcrAmortStatusTypeAC, appliedEconCondAmoutAC, instlmntFeeRconvrAmountAC, thptyOperPrtcpAmountAC, thptyOperPrtcpRecAmountAC,
+									taxCurncyAmountAC, recoveredTaxAmounAC, appChannelIdAC, creditRequestOriginRcIdAC, customerProposalBranchIdAC,
+									userAuditIdAC,
+								MCRCR_CONT_DISPOSITION,
+									contractIdMCD, operationPageIdMCD, drawDownAmountMCD, currencyIdMCD, mcrcrTimeMeasureMCD,
+									crRequestTermNumberMCD, offeredProductCatPerMCD, taxRatePerMCD, mcrcrDspnStatusTypeMCD, accountingDispositionDateMCD,
+									drawDownTotalAmountMCD, crRecoveredTotalAmountMCD, repaymentOutstdAmountMCD, effectiveEndDateMCD, debtRatioCoefficientTypeMCD,
+									debtRatioCoefChangeDateMCD, appChannelIdMCD, customerProposalBranchIdMCD, creditRequestOriginRcIdMCD, userAuditIdMCD,
+									mcrcrDspnStatusChDateMCD,
+								MCRCR_DSPN_AMORT,
+									contractIdMDA, operationPageIdMDA, sequenceIdMDA, itemSettlementDateMDA, currencyIdMDA,
+									capAmortizInstlmntAmountMDA, amortCapitalAmountMDA, repaymentOutstdAmountMDA, creditAmortizedAmountMDA, drwdnAmortTradeAmountMDA,
+									mcrcrAmortStatusTypeMDA, appChannelIdMDA, customerProposalBranchIdMDA, creditRequestOriginRcIdMDA, userAuditIdMDA
+								"/>
+				<property name="delimiter" value="|"/>
+			</bean>
+		</property>
+		<property name="fieldSetMapper">
+			<bean class="com.bbva.kmic.batch.ProductMapper"/>
+		</property>
+	</bean>
+
+
+	<!-- Processor: Lógica para validar y aplicar reverso -->
+	<bean id="itemProcessor" class="com.bbva.kmic.batch.processor.ReservePaymentProcessor" scope="step">
+		<property name="kmicR092" ref="kmicR092"/>
+	</bean>
+
+	<!-- Writer: Realiza el cambio en BD y log -->
+	<bean id="itemWriter" class="com.bbva.kmic.batch.ProductWriter" scope="step">
+		<!-- Puedes agregar propiedades si necesitas pasar libs o DAOs -->
+		<property name="kmicR092" ref="kmicR092"/>
+	</bean>
+	
+	<bean id="executionFailed" class="com.bbva.kmic.execution.FailedExecution" scope="step"/>
+
+	<!-- Tasklet para borrar el archivo -->
+	<bean id="deleteInputFile" class="com.bbva.kmic.batch.tasklets.DeleteInputFile" scope="step">
+		<property name="pathUtils" ref="pathUtils"/>
+		<property name="filename" value="#{jobParameters['fileName']}"/>
+	</bean>
+
+</beans>

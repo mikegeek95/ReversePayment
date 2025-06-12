@@ -1,0 +1,5 @@
+package com.bbva.kmic.util;
+
+public class PathUtils {
+
+}

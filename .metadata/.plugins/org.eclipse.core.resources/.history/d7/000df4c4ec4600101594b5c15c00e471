@@ -1,0 +1,148 @@
+package com.bbva.kmic.lib.r092.impl;
+
+import com.bbva.kmic.dto.commonmodel.Amount;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovementFilter;
+import com.bbva.kmic.dto.payments.ReservePaymentDto;
+import com.bbva.kmic.lib.r060.KMICR060;
+import Utils.Consultas;
+import Utils.MappingMeth;
+import Utils.ReverseCalc;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.*;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
+public class KMICR092ImplTest {
+
+    @InjectMocks
+    private KMICR092Impl kmicr092Impl;
+
+    @Mock
+    private KMICR060 kmicr060;
+    @Mock
+    private MappingMeth mappingMeth;
+    @Mock
+    private Consultas consultas;
+    @Mock
+    private ReverseCalc reverseCalc;
+
+    @Before
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    private ReservePaymentDto createPaymentDto(String contractId, String disId, double amount, String dateStr) throws ParseException {
+        ReservePaymentDto dto = new ReservePaymentDto();
+        dto.setContractId(contractId);
+        dto.setContractDisId(disId);
+        dto.setAmount(amount);
+        dto.setPeriod(new SimpleDateFormat("yyyy-MM-dd").parse(dateStr));
+        return dto;
+    }
+
+    private MicroloanMovement createMovement(String contractId, String disId, double amount) {
+        MicroloanMovement mov = new MicroloanMovement();
+        mov.setContractId(contractId);
+        mov.setMicroloanId(disId);
+        Amount amo = new Amount();
+        amo.setAmount(amount);
+        mov.setAmount(amo);
+        return mov;
+    }
+
+    @Test
+    public void testExecuteCheckPayment_whenMatchingMovementFound_shouldUpdateAmount() throws Exception {
+        // Arrange
+        ReservePaymentDto dto = createPaymentDto("C123", "D456", 500.0, "2025-06-01");
+        MicroloanMovementFilter filter = new MicroloanMovementFilter();
+        MicroloanMovement movement = createMovement("C123", "D456", 500.0);
+
+        when(mappingMeth.mapMicroloanMovementFilter(dto)).thenReturn(filter);
+        when(kmicr060.executeListMicroloansMovements(filter)).thenReturn(Collections.singletonList(movement));
+
+        KMICR092Impl spyImpl = spy(kmicr092Impl);
+        doReturn(true).when(spyImpl).isMatchingPayment(movement, dto);
+        doNothing().when(spyImpl).executeUpdateAmount(dto, movement);
+
+        // Act
+        spyImpl.executeCheckPayment(Collections.singletonList(dto));
+
+        // Assert
+        verify(kmicr060).executeListMicroloansMovements(filter);
+        verify(spyImpl).executeUpdateAmount(dto, movement);
+    }
+
+    @Test
+    public void testExecuteCheckPayment_whenNoMovements_shouldNotUpdate() throws Exception {
+        // Arrange
+        ReservePaymentDto dto = createPaymentDto("C123", "D456", 500.0, "2025-06-01");
+        MicroloanMovementFilter filter = new MicroloanMovementFilter();
+
+        when(mappingMeth.mapMicroloanMovementFilter(dto)).thenReturn(filter);
+        when(kmicr060.executeListMicroloansMovements(filter)).thenReturn(Collections.emptyList());
+
+        KMICR092Impl spyImpl = spy(kmicr092Impl);
+        doReturn(filter).when(mappingMeth).mapMicroloanMovementFilter(dto);
+
+        // Act
+        spyImpl.executeCheckPayment(Collections.singletonList(dto));
+
+        // Assert
+        verify(kmicr060).executeListMicroloansMovements(filter);
+        verify(spyImpl, never()).executeUpdateAmount(any(), any());
+    }
+
+    @Test
+    public void testIsMatchingPayment_shouldReturnTrueWhenAllMatch() {
+        MicroloanMovement movement = createMovement("C001", "M001", 1000.0);
+        ReservePaymentDto dto = new ReservePaymentDto();
+        dto.setContractId("C001");
+        dto.setContractDisId("M001");
+        dto.setAmount(1000.0);
+
+        assertTrue(kmicr092Impl.isMatchingPayment(movement, dto));
+    }
+
+    @Test
+    public void testIsMatchingPayment_shouldReturnFalseWhenAmountDiffers() {
+        MicroloanMovement movement = createMovement("C001", "M001", 999.99);
+        ReservePaymentDto dto = new ReservePaymentDto();
+        dto.setContractId("C001");
+        dto.setContractDisId("M001");
+        dto.setAmount(1000.0);
+
+        assertFalse(kmicr092Impl.isMatchingPayment(movement, dto));
+    }
+
+    @Test
+    public void testIsMatchingPayment_shouldReturnFalseWhenContractIdDiffers() {
+        MicroloanMovement movement = createMovement("C002", "M001", 1000.0);
+        ReservePaymentDto dto = new ReservePaymentDto();
+        dto.setContractId("C001");
+        dto.setContractDisId("M001");
+        dto.setAmount(1000.0);
+
+        assertFalse(kmicr092Impl.isMatchingPayment(movement, dto));
+    }
+
+    @Test
+    public void testIsMatchingPayment_shouldReturnFalseWhenDisIdDiffers() {
+        MicroloanMovement movement = createMovement("C001", "M002", 1000.0);
+        ReservePaymentDto dto = new ReservePaymentDto();
+        dto.setContractId("C001");
+        dto.setContractDisId("M001");
+        dto.setAmount(1000.0);
+
+        assertFalse(kmicr092Impl.isMatchingPayment(movement, dto));
+    }
+}
+
+

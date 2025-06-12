@@ -1,0 +1,30 @@
+package com.bbva.kmic.delete;
+
+public class DeleteFile implements Tasklet{
+	
+private static final Logger LOG = LoggerFactory.getLogger(DeleteFile.class);
+	
+	private String filename;
+	PathUtils pathUtils;
+	
+	public void setPathUtils(PathUtils pathUtils) {
+		this.pathUtils = pathUtils;
+	}
+	
+	public void setFilename(String filename) {
+		this.filename = filename;
+	}
+	
+	@Override
+	public RepeatStatus execute(StepContribution arg0, ChunkContext arg1) throws Exception {
+		try {
+		Path path = pathUtils.getFile(filename);
+		Files.deleteIfExists(path);
+		
+		LOG.info("[kmicj001] The file {} was deleted",path.getFileName());
+		}
+		catch (BusinessException e){return RepeatStatus.FINISHED;}
+		return RepeatStatus.FINISHED;
+	}
+
+}

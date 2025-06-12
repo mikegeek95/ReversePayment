@@ -1,0 +1,40 @@
+package com.bbva.kmic.lib.r092.impl;
+
+import com.bbva.elara.configuration.manager.application.ApplicationConfigurationService;
+import com.bbva.elara.library.AbstractLibrary;
+import com.bbva.elara.utility.jdbc.JdbcUtils;
+import com.bbva.kmic.lib.r060.KMICR060;
+import com.bbva.kmic.lib.r092.KMICR092;
+
+/**
+ * This class automatically defines the libraries and utilities that it will use.
+ */
+public abstract class KMICR092Abstract extends AbstractLibrary implements KMICR092 {
+
+	protected ApplicationConfigurationService applicationConfigurationService;
+
+	protected JdbcUtils jdbcUtils;
+	
+	protected KMICR060 kmicR060;
+
+
+	/**
+	* @param applicationConfigurationService the this.applicationConfigurationService to set
+	*/
+	public void setApplicationConfigurationService(ApplicationConfigurationService applicationConfigurationService) {
+		this.applicationConfigurationService = applicationConfigurationService;
+	}
+
+	/**
+	* @param jdbcUtils the this.jdbcUtils to set
+	*/
+	public void setJdbcUtils(JdbcUtils jdbcUtils) {
+		this.jdbcUtils = jdbcUtils;
+	}
+	
+	
+	    public void setKmicR092(KMICR060 kmicR060) {
+	        this.kmicR060 = kmicR060;
+	    }
+
+}

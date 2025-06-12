@@ -1,0 +1,15 @@
+package com.bbva.kmic.execution;
+
+public class FailedExecution implements Tasklet{
+	
+	private static final Logger LOG = LoggerFactory.getLogger(FailedExecution.class);
+	
+	@Override
+	public RepeatStatus execute(StepContribution sc, ChunkContext arg1) throws Exception {
+		LOG.info("Sc: {}",sc);
+		sc.setExitStatus(ExitStatus.FAILED);
+		return RepeatStatus.FINISHED;
+	}
+
+
+}

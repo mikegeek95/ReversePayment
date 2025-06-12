@@ -1,0 +1,175 @@
+package Utils;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.bbva.kmic.dto.payments.*;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+
+
+public class ReverseCalc {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReverseCalc.class);
+
+    private final Consultas consult = new Consultas();
+    private final MappingMeth mapper = new MappingMeth();
+    private final DateHelper dateHelper = new DateHelper();
+
+    public List<MicroloanMovement> executeUpdateAmount(ReservePaymentDto paymentDto, MicroloanMovement movement) {
+        List<MicroloanMovement> accEvents = consult.executeListMovements(movement);
+        MicrocreditContractDto contractDto = consult.executeGetMicrocredit(paymentDto);
+        List<ContDispositionDto> dispositionDtos = consult.executeGetDispositions(paymentDto);
+        List<DspnAmortDto> amortDtos = consult.executeGetDspnAmort(dispositionDtos, movement.getInstallmentDate());
+
+        BigDecimal reverseAmountTotal = BigDecimal.valueOf(movement.getAmount().getAmount());
+        List<MicroloanMovement> movements = new ArrayList<>();
+
+        contractDto = updateMicrocreditAmounts(contractDto, reverseAmountTotal);
+        movements.add(createLog(1, reverseAmountTotal.doubleValue(), movement, null));
+
+        Map<String, DspnAmortDto> amortCatalog = amortDtos.stream()
+            .filter(a -> a.getCrAmountPay() != 0)
+            .collect(Collectors.toMap(DspnAmortDto::getOperationId, Function.identity()));
+
+        dispositionDtos.removeIf(d -> !amortCatalog.containsKey(d.getOperationId()));
+
+        for (DspnAmortDto dspnAmortDto : amortCatalog.values()) {
+            BigDecimal saveAmount = BigDecimal.valueOf(dspnAmortDto.getCrAmountPay());
+            consult.executeGetAmorCond(dspnAmortDto); // reused from source
+
+            updateDisposition(dispositionDtos, saveAmount, dspnAmortDto.getOperationId());
+
+            BigDecimal comision = BigDecimal.valueOf(getAmountByEventCode("PGMNCMDI", accEvents));
+            BigDecimal iva = BigDecimal.valueOf(getAmountByEventCode("PGMNIVAC", accEvents));
+            BigDecimal interes = comision.add(iva).setScale(2, RoundingMode.HALF_UP);
+
+            AmortConditionDto newAmorCon = updateAmortCondition(consult.executeGetAmorCond(dspnAmortDto), comision, iva);
+            BigDecimal capitalPay = BigDecimal.ZERO;
+            boolean paymentCapital = false;
+
+            if (interes.compareTo(saveAmount) < 0) {
+                capitalPay = saveAmount.subtract(interes).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal capAmountPay = BigDecimal.valueOf(dspnAmortDto.getCapAmountPay()).setScale(2, RoundingMode.HALF_UP);
+
+                if (capAmountPay.compareTo(BigDecimal.ZERO) >= 0) {
+                    capAmountPay = capAmountPay.subtract(capAmountPay.min(capitalPay));
+                    dspnAmortDto.setCapAmountPay(capAmountPay.doubleValue());
+                    paymentCapital = true;
+                }
+                dspnAmortDto.setCrAmountPay(saveAmount.subtract(interes).doubleValue());
+                dspnAmortDto.setStatusType("PENDING");
+            }
+
+            if (paymentCapital) {
+                movements.add(createLog(2, capitalPay.doubleValue(), movement, dspnAmortDto.getOperationId()));
+            }
+            movements.add(createLog(3, comision.doubleValue(), movement, dspnAmortDto.getOperationId()));
+            movements.add(createLog(4, iva.doubleValue(), movement, dspnAmortDto.getOperationId()));
+
+            reverseAmountTotal = reverseAmountTotal.subtract(saveAmount);
+            consult.updateAmortCond(newAmorCon);
+        }
+
+        consult.updateMicroCredit(contractDto);
+        consult.updateConDispotion(dispositionDtos);
+        consult.updateDspn(amortDtos);
+
+        return movements;
+    }
+
+    private MicrocreditContractDto updateMicrocreditAmounts(MicrocreditContractDto contractDto, BigDecimal reverseAmountTotal) {
+        BigDecimal drwdnAmount = BigDecimal.valueOf(contractDto.getDrwdnAmount()).add(reverseAmountTotal);
+        BigDecimal availableAmount = BigDecimal.valueOf(contractDto.getAvailableAmount()).subtract(reverseAmountTotal);
+
+        contractDto.setDrwdnAmount(drwdnAmount.doubleValue());
+        contractDto.setAvailableAmount(availableAmount.doubleValue());
+        return contractDto;
+    }
+
+    private AmortConditionDto updateAmortCondition(AmortConditionDto amorCond, BigDecimal comision, BigDecimal iva) {
+        BigDecimal feeAmount = BigDecimal.valueOf(amorCond.getFeeAmount()).subtract(comision);
+        BigDecimal recTaxAmount = BigDecimal.valueOf(amorCond.getRecTaxAmount()).subtract(iva);
+
+        amorCond.setFeeAmount(feeAmount.doubleValue());
+        amorCond.setRecTaxAmount(recTaxAmount.doubleValue());
+        amorCond.setStatusType("PENDING");
+        return amorCond;
+    }
+
+    private void updateDisposition(List<ContDispositionDto> dispositionDtos, BigDecimal saveAmount, String operationId) {
+        ContDispositionDto dispositionDto = dispositionDtos.stream()
+            .filter(d -> d.getOperationId().equals(operationId))
+            .findFirst().orElse(null);
+
+        if (dispositionDto != null) {
+            BigDecimal recoveredTotal = BigDecimal.valueOf(dispositionDto.getRecoveredTotal()).subtract(saveAmount);
+            BigDecimal repayment = BigDecimal.valueOf(dispositionDto.getRepaymentAmount()).add(saveAmount);
+
+            dispositionDto.setRecoveredTotal(recoveredTotal.doubleValue());
+            dispositionDto.setRepaymentAmount(repayment.doubleValue());
+            dispositionDto.setStatusType("PENDING");
+        }
+    }
+
+    private double getAmountByEventCode(String code, List<MicroloanMovement> events) {
+        return events.stream()
+            .filter(e -> code.equals(e.getAccount().getEvent().getCode()))
+            .map(e -> e.getAmount().getAmount())
+            .findFirst()
+            .orElse(0.0);
+    }
+
+    public MicroloanMovement createLog(int id, double amountReverse, MicroloanMovement movement, String operationId) {
+        Date date = dateHelper.getTodayWithoutTime();
+        AmountTypeDto amount = new AmountTypeDto();
+        amount.setDate(date);
+        amount.setAmount(amountReverse);
+
+        MicroloanMovement log = null;
+        switch (id) {
+            case 1:
+                amount.setStatus("ANPGMNCN");
+                log = mapper.mapToLog(movement, amount);
+                break;
+            case 2:
+                amount.setStatus("ANPGMNCA");
+                log = mapper.mapToLog(movement, amount);
+                log.setMicroloanId(operationId);
+                break;
+            case 3:
+                amount.setStatus("ANPGMNCD");
+                log = mapper.mapToLog(movement, amount);
+                log.setMicroloanId(operationId);
+                break;
+            case 4:
+                amount.setStatus("ANPGMNIC");
+                log = mapper.mapToLog(movement, amount);
+                log.setMicroloanId(operationId);
+                break;
+            default:
+                LOGGER.info("Error al crear log");
+                break;
+        }
+        return log;
+    }
+
+    private static class DateHelper {
+        Date getTodayWithoutTime() {
+            try {
+                SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+                return format.parse(format.format(new Date()));
+            } catch (ParseException e) {
+                LOGGER.error("Error parsing date", e);
+                return new Date();
+            }
+        }
+    }
+}

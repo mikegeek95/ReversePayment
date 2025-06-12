@@ -1,0 +1,7 @@
+package com.bbva.kmic.execution;
+
+public class FailedExecution implements Tasklet{
+	
+	private static final Logger LOG = LoggerFactory.getLogger(FailedExecution.class);
+
+}

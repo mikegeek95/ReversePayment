@@ -1,0 +1,27 @@
+package com.bbva.kmic.lib.r092.impl;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * The KMICR092Impl class...
+ */
+public class KMICR092Impl extends KMICR092Abstract {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(KMICR092Impl.class);
+
+	/**
+	 * The execute method...
+	 */
+	
+	private KMICR060 kmicr060;
+
+    public void setKmicr060(KMICR060 kmicr060) {
+        this.kmicr060 = kmicr060;
+    }
+	
+	@Override
+	public void execute() {
+		// TODO - Implementation of business logic
+	}
+}

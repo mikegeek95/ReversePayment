@@ -1,0 +1,79 @@
+package Utils;
+
+import java.util.HashMap;
+import java.util.Map;
+import com.bbva.kmic.dto.payments.*;
+import java.util.List;
+import java.util.ArrayList;
+
+
+
+public class MappingMeth {
+	
+	public Map<String, Object> mapingMicrocredit (ReservePaymentDto paymentDto){
+	Map<String, Object> mapSelectMicro = new HashMap<>();
+	mapSelectMicro.put("contractId", paymentDto.getContractId());
+	return mapSelectMicro;
+	}
+	
+	public MicrocreditContractDto mapMicrocreditContract(Map<String, Object> contract) {
+		
+		MicrocreditContractDto contractDto = new MicrocreditContractDto();
+		contractDto.setContractId(contract.get("G_CONTRACT_ID").toString());
+		contractDto.setContractStatus(contract.get("G_MCRCR_CONTRACT_STATUS_TYPE").toString());
+		contractDto.setGrantedAmount(Double.parseDouble(contract.get("GF_GRANTED_AMOUNT").toString()));
+		contractDto.setDrwdnAmount(Double.parseDouble(contract.get("GF_DRAWN_AMOUNT").toString()));
+		contractDto.setAvailableAmount(Double.parseDouble(contract.get("GF_AVAILABLE_AMOUNT").toString()));
+		
+		return contractDto;
+	}
+	
+	public Map<String, Object> mapingMicroCredit(MicrocreditContractDto contractDto){
+	Map<String, Object> mapUpdateMicrocredit = new HashMap<>();
+	mapUpdateMicrocredit.put("drawnAmount", contractDto.getDrwdnAmount());
+	mapUpdateMicrocredit.put("availableAmount", contractDto.getAvailableAmount());
+	mapUpdateMicrocredit.put("contractId", contractDto.getContractId());
+	mapUpdateMicrocredit.put("contractStatusType", contractDto.getContractStatus());
+	
+	return mapUpdateMicrocredit;
+	}
+
+	public List<ContDispositionDto> mapDispositions(List<Map<String, Object>> dispo) {
+		
+		List<ContDispositionDto> contDispositions = new ArrayList<ContDispositionDto>();
+		
+		for (Map<String, Object> map : dispo) {
+			ContDispositionDto dispositionDto = new ContDispositionDto();
+			dispositionDto.setContractId(map.get("G_CONTRACT_ID").toString());
+			dispositionDto.setOperationId(map.get("GF_OPERATION_PAGE_ID").toString());
+			dispositionDto.setDrwdnAmount(Double.parseDouble(map.get("GF_DRAWDOWN_AMOUNT").toString()));
+			dispositionDto.setTermNumber(map.get("GF_CR_REQUEST_TERM_NUMBER").toString());
+			dispositionDto.setStatusType(map.get("G_MCRCR_DSPN_STATUS_TYPE").toString());
+			dispositionDto.setDrwdnTotal(Double.parseDouble(map.get("GF_DRAWDOWN_TOTAL_AMOUNT").toString()));
+			dispositionDto.setRecoveredTotal(Double.parseDouble(map.get("GF_CR_RECOVERED_TOTAL_AMOUNT").toString()));
+			dispositionDto.setRepaymentAmount(Double.parseDouble(map.get("GF_REPAYMENT_OUTSTD_AMOUNT").toString()));
+			
+			contDispositions.add(dispositionDto);
+		}
+		
+		return contDispositions;
+	}
+	
+	
+	public Map<String, Object> mappingDispositions (ReservePaymentDto paymentDto){
+		Map<String, Object> mapListDispo = new HashMap<>();
+		mapListDispo.put("contractId", paymentDto.getContractId());
+		return mapListDispo;
+		}
+	
+
+	public Map<String, Object> buildUpdateParams(ContDispositionDto contDispositionDto) {
+	    Map<String, Object> mapUpdateAmortization = new HashMap<>();
+	mapUpdateAmortization.put("pagado", contDispositionDto.getRecoveredTotal());
+	mapUpdateAmortization.put("porPagar", contDispositionDto.getRepaymentAmount());
+	mapUpdateAmortization.put("contractId", contDispositionDto.getContractId());
+	mapUpdateAmortization.put("operationPageId", contDispositionDto.getOperationId());
+	    return mapUpdateAmortization;
+		}
+
+}

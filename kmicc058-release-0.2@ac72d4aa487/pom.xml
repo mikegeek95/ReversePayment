@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.bbva.elara</groupId>
+		<artifactId>elara-project</artifactId>
+		<version>7.13.3</version>
+	</parent>
+	<groupId>com.bbva.kmic.dto.movement</groupId>
+	<artifactId>KMICC058</artifactId>
+	<version>0.2.0</version>
+	<packaging>bundle</packaging>
+	<description>Deployment unit kmicc058 of uuaa kmic</description>
+	<properties>
+		<osgi.version.manifest>0.0</osgi.version.manifest>
+		<sonar.coverage.exclusions>/src/main/java/com/bbva/kmic/dto/**</sonar.coverage.exclusions>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+	</dependencies>
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Bundle-SymbolicName>${project.artifactId}-${project.version}</Bundle-SymbolicName>
+						<Bundle-Category>dto</Bundle-Category>
+						<Import-Package>
+							*;version="${osgi.version.manifest}"
+						</Import-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

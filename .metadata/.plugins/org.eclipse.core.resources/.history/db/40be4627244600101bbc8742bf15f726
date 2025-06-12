@@ -1,0 +1,125 @@
+package com.bbva.kmic.dto.payments;
+
+
+import java.util.Objects;
+
+public class ContDispositionDto {
+	
+	private String contractId;
+	private String operationId;
+	private Double drwdnAmount;
+	private String termNumber;
+	private String statusType;
+	private Double drwdnTotal;
+	private Double recoveredTotal;
+	private Double repaymentAmount;
+	
+	public ContDispositionDto() {
+	}
+
+	public ContDispositionDto(String contractId, String operationId, Double drwdnAmount, String termNumber,
+			String statusType, Double drwdnTotal, Double recoveredTotal, Double repaymentAmount) {
+		this.contractId = contractId;
+		this.operationId = operationId;
+		this.drwdnAmount = drwdnAmount;
+		this.termNumber = termNumber;
+		this.statusType = statusType;
+		this.drwdnTotal = drwdnTotal;
+		this.recoveredTotal = recoveredTotal;
+		this.repaymentAmount = repaymentAmount;
+	}
+
+	public String getContractId() {
+		return contractId;
+	}
+
+	public void setContractId(String contractId) {
+		this.contractId = contractId;
+	}
+
+	public String getOperationId() {
+		return operationId;
+	}
+
+	public void setOperationId(String operationId) {
+		this.operationId = operationId;
+	}
+
+	public Double getDrwdnAmount() {
+		return drwdnAmount;
+	}
+
+	public void setDrwdnAmount(Double drwdnAmount) {
+		this.drwdnAmount = drwdnAmount;
+	}
+
+	public String getTermNumber() {
+		return termNumber;
+	}
+
+	public void setTermNumber(String termNumber) {
+		this.termNumber = termNumber;
+	}
+
+	public String getStatusType() {
+		return statusType;
+	}
+
+	public void setStatusType(String statusType) {
+		this.statusType = statusType;
+	}
+
+	public Double getDrwdnTotal() {
+		return drwdnTotal;
+	}
+
+	public void setDrwdnTotal(Double drwdnTotal) {
+		this.drwdnTotal = drwdnTotal;
+	}
+
+	public Double getRecoveredTotal() {
+		return recoveredTotal;
+	}
+
+	public void setRecoveredTotal(Double recoveredTotal) {
+		this.recoveredTotal = recoveredTotal;
+	}
+
+	public Double getRepaymentAmount() {
+		return repaymentAmount;
+	}
+
+	public void setRepaymentAmount(Double repaymentAmount) {
+		this.repaymentAmount = repaymentAmount;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(contractId, drwdnAmount, drwdnTotal, operationId, recoveredTotal, repaymentAmount,
+				statusType, termNumber);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ContDispositionDto other = (ContDispositionDto) obj;
+		return Objects.equals(contractId, other.contractId) && Objects.equals(drwdnAmount, other.drwdnAmount)
+				&& Objects.equals(drwdnTotal, other.drwdnTotal) && Objects.equals(operationId, other.operationId)
+				&& Objects.equals(recoveredTotal, other.recoveredTotal)
+				&& Objects.equals(repaymentAmount, other.repaymentAmount)
+				&& Objects.equals(statusType, other.statusType) && Objects.equals(termNumber, other.termNumber);
+	}
+
+	@Override
+	public String toString() {
+		return "ContDispositionDto [contractId=" + contractId + ", operationId=" + operationId + ", drwdnAmount="
+				+ drwdnAmount + ", termNumber=" + termNumber + ", statusType=" + statusType + ", drwdnTotal="
+				+ drwdnTotal + ", recoveredTotal=" + recoveredTotal + ", repaymentAmount=" + repaymentAmount + "]";
+	}
+
+}

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<libraryInfos>
+    <libraryInfo home="D:\ENTORNO_LOCAL_APX\jdk1.8.0_181" version="1.8.0_181">
+        <bootpath>
+            <entry path="D:\ENTORNO_LOCAL_APX\jdk1.8.0_181\jre\lib\resources.jar"/>
+            <entry path="D:\ENTORNO_LOCAL_APX\jdk1.8.0_181\jre\lib\rt.jar"/>
+            <entry path="D:\ENTORNO_LOCAL_APX\jdk1.8.0_181\jre\lib\sunrsasign.jar"/>
+            <entry path="D:\ENTORNO_LOCAL_APX\jdk1.8.0_181\jre\lib\jsse.jar"/>
+            <entry path="D:\ENTORNO_LOCAL_APX\jdk1.8.0_181\jre\lib\jce.jar"/>
+            <entry path="D:\ENTORNO_LOCAL_APX\jdk1.8.0_181\jre\lib\charsets.jar"/>
+            <entry path="D:\ENTORNO_LOCAL_APX\jdk1.8.0_181\jre\lib\jfr.jar"/>
+            <entry path="D:\ENTORNO_LOCAL_APX\jdk1.8.0_181\jre\classes"/>
+        </bootpath>
+        <extensionDirs>
+            <entry path="D:\ENTORNO_LOCAL_APX\jdk1.8.0_181\jre\lib\ext"/>
+            <entry path="C:\WINDOWS\Sun\Java\lib\ext"/>
+        </extensionDirs>
+        <endorsedDirs>
+            <entry path="D:\ENTORNO_LOCAL_APX\jdk1.8.0_181\jre\lib\endorsed"/>
+        </endorsedDirs>
+    </libraryInfo>
+    <libraryInfo home="C:\Users\Inetum\.p2\pool\plugins\org.eclipse.justj.openjdk.hotspot.jre.full.win32.x86_64_17.0.14.v20250130-2147" version="17.0.14"/>
+</libraryInfos>

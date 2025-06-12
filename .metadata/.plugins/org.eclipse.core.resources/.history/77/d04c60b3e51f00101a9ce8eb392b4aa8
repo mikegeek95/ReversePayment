@@ -1,0 +1,8 @@
+package com.bbva.kmic.batch;
+
+import com.bbva.kmic.dto.payments.ProductInputDTO;
+import org.springframework.batch.item.ItemWriter;
+
+public class ProductWriter implements ItemWriter<ProductInputDTO>{
+
+}

@@ -1,0 +1,227 @@
+package Utils;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.text.ParseException;
+
+import com.bbva.kmic.dto.payments.*;
+import com.bbva.kmic.lib.r092.impl.KMICR092Impl;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+
+public class ReverseCalc {
+	
+	Consultas consult= new Consultas();
+	MappingMeth mapper = new MappingMeth();
+	private static final Logger LOGGER = LoggerFactory.getLogger(KMICR092Impl.class);
+
+    public List<MicroloanMovement> executeUpdateAmount(ReservePaymentDto paymentDto, MicroloanMovement movement) {
+
+		List<MicroloanMovement> accEvents = consult.executeListMovements(movement);
+		MicrocreditContractDto contractDto = consult.executeGetMicrocredit(paymentDto);
+		List<ContDispositionDto> dispositionDtos = consult.executeGetDispositions(paymentDto);
+		List<DspnAmortDto> amortDtos = consult.executeGetDspnAmort(dispositionDtos, movement.getInstallmentDate());
+		AmortConditionDto newAmorCon = new AmortConditionDto();
+
+		List<MicroloanMovement> movements = new ArrayList<MicroloanMovement>();
+		BigDecimal reverseAmountTotal = new BigDecimal(movement.getAmount().getAmount());
+		BigDecimal saveAmount = new BigDecimal(0);
+		boolean paymentCapital = false;
+
+		contractDto = calculateMicrocredit(contractDto, reverseAmountTotal);
+		movements.add(createLog(1, reverseAmountTotal.doubleValue(), movement, null));
+
+		amortDtos = amortDtos.stream().filter(am -> am.getCrAmountPay() != 0).collect(Collectors.toList());
+		
+		Map<String, DspnAmortDto> amortCatalog = amortDtos.stream().collect(Collectors.toMap(DspnAmortDto::getOperationId, Function.identity()));
+		dispositionDtos.removeIf(d -> !amortCatalog.containsKey(d.getOperationId()));
+
+		for (DspnAmortDto dspnAmortDto : amortDtos) {
+
+			AmortConditionDto amorCond = consult.executeGetAmorCond(dspnAmortDto);
+			
+			accEvents.stream().filter(ae -> ae.getMicroloanId() == dspnAmortDto.getOperationId()).collect(Collectors.toList());
+
+			BigDecimal crAmountPay = new BigDecimal(dspnAmortDto.getCrAmountPay());
+			saveAmount = crAmountPay;
+			crAmountPay = crAmountPay.setScale(2, RoundingMode.HALF_UP);
+			crAmountPay = crAmountPay.subtract(saveAmount);
+
+			calculateDisposition(dispositionDtos, saveAmount, dspnAmortDto.getOperationId());
+
+			final BigDecimal comision = new BigDecimal(consult.executeGetAmount(2, accEvents));
+			final BigDecimal iva = new BigDecimal(consult.executeGetAmount(3, accEvents));
+			/*final double comision = totalCapital
+					.divide(BigDecimal.valueOf(Long.valueOf(dispositionDto.getTermNumber())), RoundingMode.HALF_UP)
+					.doubleValue();
+			final double iva = totalCapital.multiply(BigDecimal.valueOf(0.16))
+					.divide(BigDecimal.valueOf(Long.valueOf(dispositionDto.getTermNumber())), RoundingMode.HALF_UP)
+					.doubleValue();
+			 */
+			
+			BigDecimal interes = comision.add(iva).setScale(2, RoundingMode.HALF_UP);
+			BigDecimal capitalPay = new BigDecimal(0);
+			
+			if (interes.compareTo(saveAmount) >= 0) {
+				newAmorCon = calculateAmortizationCondition(amorCond, comision, iva);
+			}else {
+				newAmorCon = calculateAmortizationCondition(amorCond, comision, iva);
+				
+				BigDecimal capAmountPay = new BigDecimal(dspnAmortDto.getCapAmountPay());
+				capAmountPay = capAmountPay.setScale(2, RoundingMode.HALF_UP);
+
+				capitalPay = saveAmount.subtract(interes);
+				capitalPay = capitalPay.setScale(2, RoundingMode.HALF_UP);
+
+				if (capAmountPay.compareTo(BigDecimal.ZERO) >= 0) {
+					if (capitalPay.compareTo(capAmountPay) <= 0) {
+						capAmountPay = capAmountPay.subtract(capitalPay);
+					} else {
+						capAmountPay = capAmountPay.subtract(capAmountPay);
+					}
+
+					paymentCapital = true;
+				}
+				
+				dspnAmortDto.setCrAmountPay(crAmountPay.doubleValue());
+				dspnAmortDto.setCapAmountPay(capAmountPay.doubleValue());
+				dspnAmortDto.setStatusType("PENDING");
+			}
+
+
+
+			if (paymentCapital) {
+				movements.add(createLog(2, capitalPay.doubleValue(), movement, dspnAmortDto.getOperationId()));
+			}
+			movements.add(createLog(3, comision.doubleValue(), movement, dspnAmortDto.getOperationId()));
+			movements.add(createLog(4, iva.doubleValue(), movement, dspnAmortDto.getOperationId()));
+
+			reverseAmountTotal = reverseAmountTotal.subtract(saveAmount);
+
+
+			consult.updateAmortCond(newAmorCon);
+		}
+
+		consult.updateMicroCredit(contractDto);
+		consult.updateConDispotion(dispositionDtos);
+		consult.updateDspn(amortDtos);
+
+		return movements;
+
+	}
+    
+	public MicroloanMovement createLog(int id, double amountReverse, MicroloanMovement movement, String operationId) {
+
+		
+
+		SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+		Date hoy = new Date();
+		String fechaStr = formato.format(hoy);
+		Date fechaSoloFecha = null;
+		try {
+			fechaSoloFecha = formato.parse(fechaStr);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+		AmountTypeDto amount = new AmountTypeDto();
+		amount.setDate(fechaSoloFecha);
+		amount.setAmount(amountReverse);
+		MicroloanMovement mlMovement = null;
+
+		switch (id) {
+		case 1: // Anulación de pago mensual
+			amount.setStatus("ANPGMNCN");
+			mlMovement = mapper.mapToLog(movement, amount);
+			break;
+
+		case 2: // Anulación de pago de capital mensual
+			amount.setStatus("ANPGMNCA");
+			mlMovement = mapper.mapToLog(movement, amount);
+			mlMovement.setMicroloanId(operationId);
+			break;
+
+		case 3: // Anulación de pago de comision mensual
+			amount.setStatus("ANPGMNCD");
+			mlMovement = mapper.mapToLog(movement, amount);
+			mlMovement.setMicroloanId(operationId);
+			break;
+
+		case 4: // Anulación de pago de iva mensual
+			amount.setStatus("ANPGMNIC");
+			mlMovement = mapper.mapToLog(movement, amount);
+			mlMovement.setMicroloanId(operationId);
+			break;
+
+		default:
+			LOGGER.info("Error al crear log");
+			break;
+		}
+
+		return mlMovement;
+
+	}
+	
+	private MicrocreditContractDto calculateMicrocredit(MicrocreditContractDto contractDto,
+			BigDecimal reverseAmountTotal) {
+
+		BigDecimal drwdnAmount = new BigDecimal(contractDto.getDrwdnAmount());
+		BigDecimal availableAmount = new BigDecimal(contractDto.getAvailableAmount());
+
+		drwdnAmount = drwdnAmount.add(reverseAmountTotal);
+		availableAmount = availableAmount.subtract(reverseAmountTotal);
+
+		contractDto.setDrwdnAmount(drwdnAmount.doubleValue());
+		contractDto.setAvailableAmount(availableAmount.doubleValue());
+
+		return contractDto;
+
+	}
+	
+	private AmortConditionDto calculateAmortizationCondition(AmortConditionDto amorCond, BigDecimal comision, BigDecimal iva) {
+		
+		BigDecimal feeAmount = new BigDecimal(amorCond.getFeeAmount());
+		BigDecimal recTaxAmount = new BigDecimal(amorCond.getRecTaxAmount());
+		
+		feeAmount = feeAmount.subtract(comision);
+		recTaxAmount = recTaxAmount.subtract(iva);
+		
+		amorCond.setFeeAmount(feeAmount.doubleValue());
+		amorCond.setRecTaxAmount(recTaxAmount.doubleValue());
+		amorCond.setStatusType("PENDING");
+		
+		return amorCond;
+	}
+	
+	private ContDispositionDto calculateDisposition(List<ContDispositionDto> dispositionDtos, BigDecimal saveAmount,
+			String operationId) {
+		
+		ContDispositionDto dispositionDto = dispositionDtos.stream()
+	            .filter(d -> d.getOperationId().equals(operationId))
+	            .findFirst().orElse(null);
+
+		BigDecimal recoveredTotal = new BigDecimal(dispositionDto.getRecoveredTotal());
+		BigDecimal repayment = new BigDecimal(dispositionDto.getRepaymentAmount());
+
+		recoveredTotal = recoveredTotal.subtract(saveAmount);
+		repayment = repayment.add(saveAmount);
+
+		dispositionDto.setRecoveredTotal(recoveredTotal.doubleValue());
+		dispositionDto.setRepaymentAmount(repayment.doubleValue());
+		
+		if (dispositionDto.getRepaymentAmount() != 0 || dispositionDto.getRepaymentAmount().compareTo(0.0) != 0) {
+			dispositionDto.setStatusType("PENDING");
+		}
+
+		return dispositionDto;
+ 
+	}
+
+}

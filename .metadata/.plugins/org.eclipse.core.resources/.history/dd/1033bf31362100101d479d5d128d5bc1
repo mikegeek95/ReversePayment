@@ -1,0 +1,62 @@
+package com.bbva.kmic.lib.r092.impl;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+import java.util.List;
+import com.bbva.kmic.dto.payments.ProductInputDTO;
+import com.bbva.kmic.lib.r060.KMICR060;
+import com.bbva.kmic.dto.commonmodel.Account;
+import com.bbva.kmic.dto.commonmodel.Amount;
+import com.bbva.kmic.dto.commonmodel.AccountEvent;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+
+/**
+ * The KMICR092Impl class...
+ */
+public class KMICR092Impl extends KMICR092Abstract {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(KMICR092Impl.class);
+
+	/**
+	 * The execute method...
+	 */
+	@Override
+	public void executeInsertProductWorkshop(List<ProductInputDTO> items) {
+	    for (ProductInputDTO dto : items) {
+	        LOGGER.info("[KMICR92] Línea leída y mapeada en librería: {}", dto.toString());
+
+	        MicroloanMovement movimiento = new MicroloanMovement();
+
+	        // Set campos directos
+	        movimiento.setContractId(dto.getContractId());
+	        movimiento.setMicroloanId(dto.getMicroloanId());
+	        movimiento.setInstallmentDate(dto.getInstallmentDate());
+
+	        // Set monto (anidado)
+	        Amount monto = new Amount();
+	        monto.setAmount(dto.getAmount());
+	        movimiento.setAmount(monto);
+
+	        // Set eventCode (anidado)
+	        Account account = new Account();
+	        AccountEvent event = new AccountEvent();
+	        event.setCode(dto.getTipoMovimiento()); // este es el eventCode
+	        account.setEvent(event);
+	        movimiento.setAccount(account);
+
+	        // Llama ahora que ya está poblado
+	        MicroloanMovement out = kmicr060.executeGetMicroloanMovement(movimiento);
+
+	        // Puedes loggear la salida si quieres validar
+	        if (out != null) {
+	            LOGGER.info("[KMICR92] Movimiento encontrado: {}", out);
+	        } else {
+	            LOGGER.warn("[KMICR92] No se encontró el movimiento para: {}", movimiento);
+	        }
+	    }
+	}
+
+
+}

@@ -1,0 +1,7 @@
+package com.bbva.kmic.batch;
+
+import com.bbva.kmic.dto.payments.ProductInputDTO;
+
+public class ProductMapper implements FieldSetMapper<ProductInputDTO>{
+
+}

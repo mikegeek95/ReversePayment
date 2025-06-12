@@ -1,0 +1,227 @@
+package com.bbva.kmic.lib.r092.impl;
+
+
+
+import com.bbva.apx.exception.db.DBException;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+import com.bbva.kmic.dto.payments.*;
+import com.bbva.kmic.lib.r092.impl.KMICR092Impl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class ConsultasTest {
+
+    @Mock
+    private MappingMeth mapper;
+
+    @Mock
+    private JdbcUtils jdbcUtils;
+
+    @InjectMocks
+    private Consultas consultas;
+
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+        consultas = new Consultas(mapper, jdbcUtils); // Constructor injection
+    }
+
+    @Test
+    void executeGetMicrocredit_success() throws DBException {
+        ReservePaymentDto dto = new ReservePaymentDto();
+        Map<String, Object> args = Map.of("contractId", "123");
+        Map<String, Object> result = new HashMap<>();
+        MicrocreditContractDto expected = new MicrocreditContractDto();
+
+        when(mapper.mapingMicrocredit(dto)).thenReturn(args);
+        when(jdbcUtils.queryForMap(anyString(), eq(args))).thenReturn(result);
+        when(mapper.mapMicrocreditContract(result)).thenReturn(expected);
+
+        MicrocreditContractDto actual = consultas.executeGetMicrocredit(dto);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void executeGetMicrocredit_dbException_returnsNull() throws DBException {
+        ReservePaymentDto dto = new ReservePaymentDto();
+        when(mapper.mapingMicrocredit(dto)).thenReturn(Map.of("contractId", "123"));
+        when(jdbcUtils.queryForMap(anyString(), anyMap())).thenThrow(new DBException("fail"));
+
+        assertNull(consultas.executeGetMicrocredit(dto));
+    }
+
+    @Test
+    void updateMicroCredit_success_returnsUpdateCount() throws DBException {
+        MicrocreditContractDto dto = new MicrocreditContractDto();
+        when(mapper.mapingMicroCredit(dto)).thenReturn(Map.of());
+        when(jdbcUtils.update(anyString(), anyMap())).thenReturn(5);
+
+        assertEquals(5, consultas.updateMicroCredit(dto));
+    }
+
+    @Test
+    void updateMicroCredit_dbException_returnsZero() throws DBException {
+        MicrocreditContractDto dto = new MicrocreditContractDto();
+        when(mapper.mapingMicroCredit(dto)).thenReturn(Map.of());
+        when(jdbcUtils.update(anyString(), anyMap())).thenThrow(new DBException("fail"));
+
+        assertEquals(0, consultas.updateMicroCredit(dto));
+    }
+
+    @Test
+    void executeGetDispositions_success() throws DBException {
+        ReservePaymentDto dto = new ReservePaymentDto();
+        List<Map<String, Object>> resultList = List.of();
+        List<ContDispositionDto> expected = new ArrayList<>();
+
+        when(mapper.mappingDispositions(dto)).thenReturn(Map.of());
+        when(jdbcUtils.queryForList(anyString(), anyMap())).thenReturn(resultList);
+        when(mapper.mapDispositions(resultList)).thenReturn(expected);
+
+        assertEquals(expected, consultas.executeGetDispositions(dto));
+    }
+
+    @Test
+    void executeGetDispositions_dbException_returnsNull() throws DBException {
+        ReservePaymentDto dto = new ReservePaymentDto();
+        when(mapper.mappingDispositions(dto)).thenReturn(Map.of());
+        when(jdbcUtils.queryForList(anyString(), anyMap())).thenThrow(new DBException("fail"));
+
+        assertNull(consultas.executeGetDispositions(dto));
+    }
+
+    @Test
+    void updateConDispotion_success_countsUpdates() throws DBException {
+        ContDispositionDto dto = new ContDispositionDto();
+        dto.setContractId("123");
+        when(mapper.mappingConDispotion(dto)).thenReturn(Map.of());
+        when(jdbcUtils.update(anyString(), anyMap())).thenReturn(1);
+
+        int result = consultas.updateConDispotion(List.of(dto));
+        assertEquals(1, result);
+    }
+
+    @Test
+    void updateConDispotion_dbException_skipsAndContinues() throws DBException {
+        ContDispositionDto dto = new ContDispositionDto();
+        dto.setContractId("123");
+        when(mapper.mappingConDispotion(dto)).thenReturn(Map.of());
+        when(jdbcUtils.update(anyString(), anyMap())).thenThrow(new DBException("fail"));
+
+        assertEquals(0, consultas.updateConDispotion(List.of(dto)));
+    }
+
+    @Test
+    void executeGetDspnAmort_onlyReturnsNonEmpty() throws DBException {
+        ContDispositionDto dto = new ContDispositionDto();
+        dto.setContractId("123");
+        Date period = new Date();
+        List<Map<String, Object>> raw = List.of(Map.of());
+        List<DspnAmortDto> mapped = List.of(new DspnAmortDto());
+
+        when(mapper.buildDspnAmortParams(dto, period)).thenReturn(Map.of());
+        when(jdbcUtils.queryForList(anyString(), anyMap())).thenReturn(raw);
+        when(mapper.mapDspnAmorts(raw)).thenReturn(mapped);
+
+        List<DspnAmortDto> result = consultas.executeGetDspnAmort(List.of(dto), period);
+        assertEquals(mapped, result);
+    }
+
+    @Test
+    void executeGetDspnAmort_emptyResults_returnsNull() throws DBException {
+        ContDispositionDto dto = new ContDispositionDto();
+        Date period = new Date();
+        when(mapper.buildDspnAmortParams(dto, period)).thenReturn(Map.of());
+        when(jdbcUtils.queryForList(anyString(), anyMap())).thenReturn(Collections.emptyList());
+
+        assertNull(consultas.executeGetDspnAmort(List.of(dto), period));
+    }
+
+    @Test
+    void updateDspn_success_countsUpdates() throws DBException {
+        DspnAmortDto dto = new DspnAmortDto();
+        dto.setContractId("123");
+        when(mapper.buildUpdateDspnParams(dto)).thenReturn(Map.of());
+        when(jdbcUtils.update(anyString(), anyMap())).thenReturn(2);
+
+        assertEquals(2, consultas.updateDspn(List.of(dto)));
+    }
+
+    @Test
+    void executeListMovements_success_returnsList() throws DBException {
+        MicroloanMovement movement = mock(MicroloanMovement.class);
+        com.bbva.kmic.dto.commonmodel.Account account = new com.bbva.kmic.dto.commonmodel.Account();
+        account.setNumber("acct");
+        when(movement.getAccount()).thenReturn(account);
+
+        List<Map<String, Object>> raw = List.of(Map.of());
+        List<MicroloanMovement> mapped = List.of(new MicroloanMovement());
+
+        when(mapper.buildListMovementsParams(movement)).thenReturn(Map.of());
+        when(jdbcUtils.queryForList(anyString(), anyMap())).thenReturn(raw);
+        when(mapper.mapListMicroloanMovement(raw)).thenReturn(mapped);
+
+        assertEquals(mapped, consultas.executeListMovements(movement));
+    }
+
+    @Test
+    void executeListMovements_emptyList_returnsNull() throws DBException {
+        MicroloanMovement movement = mock(MicroloanMovement.class);
+        com.bbva.kmic.dto.commonmodel.Account account = new com.bbva.kmic.dto.commonmodel.Account();
+        account.setNumber("acct");
+        when(movement.getAccount()).thenReturn(account);
+
+        when(mapper.buildListMovementsParams(movement)).thenReturn(Map.of());
+        when(jdbcUtils.queryForList(anyString(), anyMap())).thenReturn(Collections.emptyList());
+
+        assertNull(consultas.executeListMovements(movement));
+    }
+
+    @Test
+    void executeGetAmorCond_success_returnsDto() throws DBException {
+        DspnAmortDto dto = new DspnAmortDto();
+        dto.setContractId("123");
+        when(mapper.buildAmortConditionParams(dto)).thenReturn(Map.of());
+        when(jdbcUtils.queryForMap(anyString(), anyMap())).thenReturn(Map.of());
+        when(mapper.mapAmortCondition(anyMap())).thenReturn(new AmortConditionDto());
+
+        assertNotNull(consultas.executeGetAmorCond(dto));
+    }
+
+    @Test
+    void executeGetAmorCond_noResult_returnsNull() throws DBException {
+        DspnAmortDto dto = new DspnAmortDto();
+        dto.setContractId("123");
+        when(mapper.buildAmortConditionParams(dto)).thenReturn(Map.of());
+        when(jdbcUtils.queryForMap(anyString(), anyMap())).thenReturn(null);
+
+        assertNull(consultas.executeGetAmorCond(dto));
+    }
+
+    @Test
+    void updateAmortCond_success_returnsUpdateCount() throws DBException {
+        AmortConditionDto dto = new AmortConditionDto();
+        dto.setContractId("123");
+        when(mapper.buildUpdateAmortCondParams(dto)).thenReturn(Map.of());
+        when(jdbcUtils.update(anyString(), anyMap())).thenReturn(3);
+
+        assertEquals(3, consultas.updateAmortCond(dto));
+    }
+
+    @Test
+    void updateAmortCond_dbException_returnsZero() throws DBException {
+        AmortConditionDto dto = new AmortConditionDto();
+        dto.setContractId("123");
+        when(mapper.buildUpdateAmortCondParams(dto)).thenReturn(Map.of());
+        when(jdbcUtils.update(anyString(), anyMap())).thenThrow(new DBException("fail"));
+
+        assertEquals(0, consultas.updateAmortCond(dto));
+    }
+}
+

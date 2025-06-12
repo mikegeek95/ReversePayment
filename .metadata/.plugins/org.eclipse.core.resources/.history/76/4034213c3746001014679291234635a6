@@ -1,0 +1,35 @@
+package com.bbva.kmic.lib.r092;
+
+import java.util.Date;
+import java.util.List;
+
+
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+import com.bbva.kmic.dto.payments.ContDispositionDto;
+import com.bbva.kmic.dto.payments.DspnAmortDto;
+import com.bbva.kmic.dto.payments.MicrocreditContractDto;
+import com.bbva.kmic.dto.payments.ProductInputDTO;
+import com.bbva.kmic.dto.payments.ReservePaymentDto;
+import com.bbva.kmic.dto.payments.AmortConditionDto;
+
+/**
+ * The  interface KMICR092 class...
+ */
+public interface KMICR092 {
+
+	/**
+	 * The execute method...
+	 */
+	void executeGetReversePayments( List<ProductInputDTO> items);
+	MicrocreditContractDto executeGetMicrocredit(ReservePaymentDto paymentDto);
+	int updateMicroCredit(MicrocreditContractDto contractDto);
+	List<ContDispositionDto> executeGetDispositions(ReservePaymentDto paymentDto);
+	int updateConDispotion(List<ContDispositionDto> dispositionDtos);
+	List<DspnAmortDto> executeGetDspnAmort(List<ContDispositionDto> dispositionDtos, Date paymentPeriod);
+	int updateDspn(List<DspnAmortDto> amortDtos);
+	List<MicroloanMovement> executeListMovements(MicroloanMovement movement);
+	AmortConditionDto executeGetAmorCond(DspnAmortDto dspnAmortDto);
+	int updateAmortCond(AmortConditionDto newAmorCon);
+	List<DspnAmortDto> executeGetDspnAmort(List<ContDispositionDto> dispositionDtos, java.util.Date paymentPeriod);
+
+}

@@ -1,0 +1,24 @@
+package Constants;
+
+public final class Constants {
+
+    private Constants() {
+        // Constructor privado para evitar instanciación
+    }
+
+    // Nombres de los properties definidos en el archivo .properties
+    public static final String MICRO_CREDIT_CONTRACT = "select_microcredit";
+    public static final String AMORTIZATION_CONDITION = "update_microcredit";
+    public static final String MCECR_AMORTIZATION = "list_dispositionsn";
+    public static final String UPDATE_CONTRACT_CONDITION = "update_cont_diposition";
+    public static final String UPDATE_DISPOSITION = "list_dspn";
+    public static final String UPDATE_DISPOSITION = "update_dspn";
+    public static final String UPDATE_DISPOSITION = "list_logs_mov";
+    public static final String UPDATE_DISPOSITION = "list_amort_cond";
+    public static final String UPDATE_DISPOSITION = "update_amort_cond";
+    public static final String UPDATE_DISPOSITION = "list_dspn";
+
+
+}
+
+	

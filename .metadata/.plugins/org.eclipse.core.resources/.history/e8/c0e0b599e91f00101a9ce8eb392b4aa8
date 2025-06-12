@@ -1,0 +1,32 @@
+package com.bbva.kmic.batch;
+
+import com.bbva.kmic.dto.payments.ProductInputDTO;
+import org.springframework.batch.item.file.mapping.FieldSetMapper;
+import org.springframework.batch.item.file.transform.FieldSet;
+import org.springframework.validation.BindException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class ProductMapper implements FieldSetMapper<ProductInputDTO>{
+	
+	private static final Logger LOG = LoggerFactory.getLogger(ProductMapper.class);
+
+	@Override
+	public ProductInputDTO mapFieldSet(FieldSet fieldSet) throws BindException {
+		// TODO Auto-generated method stub
+		LOG.info("[kmicjapr] Starting Mapper");
+        ProductInputDTO productInputDTO = new ProductInputDTO();
+        mapMovementType(fieldSet,productInputDTO);
+        
+        return productInputDTO;
+	}
+	
+	private void mapMovementType(FieldSet fieldSet,ProductInputDTO productInputDTO) {
+		ProductInputDTO.setUsuario(fieldSet.readString("usario"));
+		ProductInputDTO.setNombre(fieldSet.readString("nombre"));
+		ProductInputDTO.setPass(fieldSet.readString("password"));
+		ProductInputDTO.setPuesto(fieldSet.readString("puesto"));
+		
+	   }
+
+}

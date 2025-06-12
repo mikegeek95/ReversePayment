@@ -1,0 +1,226 @@
+package Utils;
+
+import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.bbva.apx.exception.db.DBException;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+import com.bbva.kmic.dto.payments.*;
+import com.bbva.kmic.lib.r092.impl.KMICR092Impl;
+
+import Constants.Constants;
+
+public class Consultas extends KMICR092Impl {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(Consultas.class);
+
+	
+	MappingMeth mapper = new MappingMeth();
+	
+	@Override
+	public MicrocreditContractDto executeGetMicrocredit(ReservePaymentDto paymentDto) {
+		Map<String, Object> args = mapper.mapingMicrocredit (paymentDto);
+		
+		 try {
+	        	LOGGER.info("movimiento consultado {}", args,Constants.select_microcredit);
+	        	Map<String, Object> resultLog = jdbcUtils.queryForMap(Constants.select_microcredit , args);
+	        	MicrocreditContractDto contractDto = mapper.mapMicrocreditContract(resultLog);
+	            LOGGER.info("movimiento {} actualizado correctamente", args.get("contractId"));
+	            return contractDto;
+	        } catch (DBException e) {
+	            LOGGER.error("Error al actualizar movimiento: {}", args.get("contractId"), e);
+	            return null;
+	        }
+
+	}
+
+	@Override
+	public int updateMicroCredit(MicrocreditContractDto contractDto) {
+		int res = 0;
+		Map<String, Object> args =mapper.mapingMicroCredit(contractDto);
+		try {
+        	LOGGER.info("movimiento consultado {}", args,Constants.update_microcredit);
+        	res = jdbcUtils.update(Constants.update_microcredit, args);
+    		LOGGER.info("[KMIC092] Microcredit update completes");
+    		
+        } catch (DBException e) {
+            LOGGER.error("Error al actualizar movimiento: {}", args.get("contractId"), e);
+            
+        }
+		return res;
+	}
+
+
+	@Override
+	public List<ContDispositionDto> executeGetDispositions(ReservePaymentDto paymentDto) {
+		Map<String, Object> args= mapper.mappingDispositions(paymentDto);
+		
+		try {
+        	LOGGER.info("movimiento consultado {}", args,Constants.list_dispositionsn);
+        	List<Map<String, Object>> result = jdbcUtils.queryForList(Constants.list_dispositionsn, args);
+    		List<ContDispositionDto> dispoDto = mapper.mapDispositions(result);
+            LOGGER.info("movimiento {} actualizado correctamente", args.get("contractId"));
+            return dispoDto;
+        } catch (DBException e) {
+            LOGGER.error("Error al actualizar movimiento: {}", args.get("contractId"), e);
+            return null;
+        }
+	}
+	
+	@Override
+	public int updateConDispotion(List<ContDispositionDto> dispositionDtos) {
+	    int totalUpdated = 0;
+
+	    for (ContDispositionDto contDispositionDto : dispositionDtos) {
+	        Map<String, Object> mapUpdateAmortization = mapper.mappingConDispotion(contDispositionDto);
+
+	        try {
+	            LOGGER.info("Actualizando amortización con datos: {}", mapUpdateAmortization);
+	            int res = jdbcUtils.update(Constants.update_cont_diposition, mapUpdateAmortization);
+
+	            if (res == 0) {
+	                LOGGER.warn("No se actualizó ninguna fila para contractId: {}", contDispositionDto.getContractId());
+	            } else {
+	                LOGGER.info("Amortización actualizada correctamente para contractId: {}", contDispositionDto.getContractId());
+	                totalUpdated += res;
+	            }
+
+	        } catch (DBException e) {
+	            LOGGER.error("Error al actualizar amortización para contractId: {}", contDispositionDto.getContractId(), e);
+	        }
+	    }
+
+	    return totalUpdated;
+	}
+
+
+	@Override
+	public List<DspnAmortDto> executeGetDspnAmort(List<ContDispositionDto> dispositionDtos, Date paymentPeriod) {
+	    List<DspnAmortDto> amortDtos = new ArrayList<>();
+
+	    for (ContDispositionDto dto : dispositionDtos) {
+	        Map<String, Object> params = mapper.buildDspnAmortParams(dto, paymentPeriod);
+
+	        try {
+	            LOGGER.info("Consultando amortización con parámetros: {}", params);
+	            List<Map<String, Object>> result = jdbcUtils.queryForList(Constants.list_dspn, params);
+
+	            if (result == null || result.isEmpty()) {
+	                LOGGER.warn("No se encontraron resultados para contractId: {}", dto.getContractId());
+	                continue;
+	            }
+
+	            List<DspnAmortDto> mappedDtos = mapper.mapDspnAmorts(result);
+	            amortDtos.addAll(mappedDtos);
+
+	            LOGGER.info("Amortización consultada correctamente para contractId: {}", dto.getContractId());
+
+	        } catch (DBException e) {
+	            LOGGER.error("Error al consultar amortización para contractId: {}", dto.getContractId(), e);
+	        }
+	    }
+
+	    return amortDtos.isEmpty() ? null : amortDtos;
+	}
+
+	@Override
+	public int updateDspn(List<DspnAmortDto> amortDtos) {
+	    int totalUpdated = 0;
+
+	    for (DspnAmortDto dto : amortDtos) {
+	        Map<String, Object> params = mapper.buildUpdateDspnParams(dto);
+
+	        try {
+	            LOGGER.info("Actualizando Dspn Amort con parámetros: {}", params);
+	            int res = jdbcUtils.update(Constants.update_dspn, params);
+
+	            if (res == 0) {
+	                LOGGER.warn("No se actualizó ninguna fila para contractId: {}", dto.getContractId());
+	            } else {
+	                LOGGER.info("Dspn Amort actualizado correctamente para contractId: {}", dto.getContractId());
+	                totalUpdated += res;
+	            }
+
+	        } catch (DBException e) {
+	            LOGGER.error("Error al actualizar Dspn Amort para contractId: {}", dto.getContractId(), e);
+	        }
+	    }
+
+	    return totalUpdated;
+	}
+
+	
+	@Override
+	public List<MicroloanMovement> executeListMovements(MicroloanMovement movement) {
+	    Map<String, Object> params = mapper.buildListMovementsParams(movement);
+
+	    try {
+	        LOGGER.info("Consultando movimientos con parámetros: {}", params);
+	        List<Map<String, Object>> result = jdbcUtils.queryForList(Constants.list_logs_mov, params);
+
+	        if (result == null || result.isEmpty()) {
+	            LOGGER.warn("No se encontraron movimientos para acctMov: {}", movement.getAccount().getNumber());
+	            return null;
+	        }
+	        else {
+	        	Collections.emptyList()
+	        }
+
+	        List<MicroloanMovement> listEvents = mapper.mapListMicroloanMovement(result);
+	        LOGGER.info("Movimientos consultados correctamente para acctMov: {}", movement.getAccount().getNumber());
+	        return listEvents;
+
+	    } catch (DBException e) {
+	        LOGGER.error("Error al consultar movimientos para acctMov: {}", movement.getAccount().getNumber(), e);
+	        return null;
+	    }
+	}
+	
+	@Override
+	public AmortConditionDto executeGetAmorCond(DspnAmortDto dspnAmortDto) {
+	    Map<String, Object> params = mapper.buildAmortConditionParams(dspnAmortDto);
+
+	    try {
+	        LOGGER.info("Consultando condición de amortización con parámetros: {}", params);
+	        Map<String, Object> result = jdbcUtils.queryForMap(Constants.list_amort_cond, params);
+
+	        if (result != null) {
+	            AmortConditionDto conditionDto = mapper.mapAmortCondition(result);
+	            LOGGER.info("Condición de amortización obtenida correctamente para contractId: {}", dspnAmortDto.getContractId());
+	            return conditionDto;
+	        } else {
+	            LOGGER.warn("No se encontró condición de amortización para contractId: {}", dspnAmortDto.getContractId());
+	            return null;
+	        }
+
+	    } catch (DBException e) {
+	        LOGGER.error("Error al consultar condición de amortización para contractId: {}", dspnAmortDto.getContractId(), e);
+	        return null;
+	    }
+	}
+
+	@Override
+	public int updateAmortCond(AmortConditionDto newAmorCon) {
+	    int res = 0;
+	    Map<String, Object> params = mapper.buildUpdateAmortCondParams(newAmorCon);
+
+	    try {
+	    	LOGGER.info("Actualizando condición de amortización con parámetros: {}", params);
+	        res = jdbcUtils.update(Constants.update_amort_cond, params);
+	        LOGGER.info("Condición de amortización actualizada correctamente para contractId: {}", newAmorCon.getContractId());
+	    } catch (DBException e) {
+	    	LOGGER.error("Error al actualizar condición de amortización para contractId: {}", newAmorCon.getContractId(), e);
+	        return 0;
+	    }
+
+	    return res;
+	}
+	
+	
+
+}

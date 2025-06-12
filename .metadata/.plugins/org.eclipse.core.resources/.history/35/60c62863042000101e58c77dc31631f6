@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context" 
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/context
+						http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/tx 
+						http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<!-- KMICJ044-01-ZZ-beans.xml -->
+	
+	<!-- Transaction manager -->
+	<bean id="transactionManager" class="org.springframework.batch.support.transaction.ResourcelessTransactionManager"/>
+
+	<!-- Permite definir beans con scope de step -->
+	<bean class="org.springframework.batch.core.scope.StepScope"/>
+
+	<!-- Job launcher -->
+	<bean id="jobLauncher" class="com.bbva.elara.batch.launcher.SimpleJobLauncherBean">
+		<property name="job" ref="KMICJ044-01-ZZ"/>
+		<property name="batchLauncher" ref="batchLauncher"/>
+		<property name="defaultIncrementer" ref="defaultIncrementer"/>
+	</bean>
+
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+	
+	<bean id="pathUtils" class="com.bbva.kmic.util.PathUtils"/>
+
+	<!-- Reader: Lee archivo pipe -->
+	<bean id="processFileLineMapper" class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+		<property name="lineTokenizer">
+			<bean class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
+				<property name="strict" value="false"/>
+				<property name="names"
+						  value="usuario, nombre, password, puesto
+								"/>
+				<property name="delimiter" value="|"/>
+			</bean>
+		</property>
+		<property name="fieldSetMapper">
+			<bean class="com.bbva.kmic.batch.ProductMapper"/>
+		</property>
+	</bean>
+
+
+	<!-- Processor: Lógica para validar y aplicar reverso -->
+	<bean id="itemProcessor" class="com.bbva.kmic.batch.processor.ReservePaymentProcessor" scope="step">
+		<property name="kmicR092" ref="kmicR092"/>
+	</bean>
+
+	<!-- Writer: Realiza el cambio en BD y log -->
+	<bean id="itemWriter" class="com.bbva.kmic.batch.ProductWriter" scope="step">
+		<!-- Puedes agregar propiedades si necesitas pasar libs o DAOs -->
+		<property name="kmicR092" ref="kmicR092"/>
+	</bean>
+	
+	<bean id="executionFailed" class="com.bbva.kmic.execution.FailedExecution" scope="step"/>
+
+	<!-- Tasklet para borrar el archivo -->
+	<bean id="deleteInputFile" class="com.bbva.kmic.batch.tasklets.DeleteInputFile" scope="step">
+		<property name="pathUtils" ref="pathUtils"/>
+		<property name="filename" value="#{jobParameters['InputFile']}"/>
+	</bean>
+
+</beans>

@@ -1,0 +1,12 @@
+{
+    "component": "r2artifact",
+    "repoName": "kmicc058",
+    "uuaa": "kmic",
+    "slave_label": "apx",
+    "extra_properties": null,
+    "apxrepoBranch": "master",
+    "componentPaaSId": "kmicc058",
+    "appPaaSId": "kmic",
+    "proyectPaaSId": "gl.kmic.app-id-2037694.dsg",
+    "resource_type": "dto"
+}

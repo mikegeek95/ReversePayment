@@ -1,0 +1,52 @@
+package com.bbva.kmic.lib.r092.impl;
+
+
+
+
+
+
+@ExtendWith(MockitoExtension.class)
+class KMICR092ImplTest {
+
+  @InjectMocks
+  KMICR092Impl sut;
+
+  @Mock
+  KMICR060 kmicR060;
+
+  @Mock
+  MappingMeth mapper;
+
+  @Test
+  void executeCheckPayment_successfulMatch_invokesUpdate() {
+    // Arrange
+    ReservePaymentDto dto = new ReservePaymentDto();
+    // inicializar dto con contractId, …, amount, etc.
+
+    MicroloanMovement movement = new MicroloanMovement();
+    // inicializar movement con mismos datos para que isMatchingPayment sea true
+
+    when(mapper.mapMicroloanMovementFilter(dto)).thenReturn(/*filter dummy*/);
+    when(kmicR060.executeListMicroloansMovements(any())).thenReturn(List.of(movement));
+    
+    // Espiar método update
+    doNothing().when(sut).executeUpdateAmount(dto, movement);
+
+    // Act
+    sut.executeCheckPayment(List.of(dto));
+
+    // Assert
+    verify(sut).executeUpdateAmount(dto, movement);
+  }
+
+  @Test
+  void executeCheckPayment_noResult_doesNothing() {
+    when(mapper.mapMicroloanMovementFilter(any())).thenReturn(/*filter*/);
+    when(kmicR060.executeListMicroloansMovements(any())).thenReturn(Collections.emptyList());
+
+    sut.executeCheckPayment(List.of(new ReservePaymentDto()));
+  
+    verify(sut, never()).executeUpdateAmount(any(), any());
+  }
+}
+

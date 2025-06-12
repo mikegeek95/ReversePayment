@@ -1,0 +1,16 @@
+package com.bbva.kmic.lib.r092.impl;
+
+
+
+import com.bbva.kmic.dto.commonmodel.Account;
+import com.bbva.kmic.dto.commonmodel.AccountEvent;
+import com.bbva.kmic.dto.commonmodel.Amount;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+import com.bbva.kmic.dto.payments.ProductInputDTO;
+
+import java.sql.Date;
+import java.util.*;
+
+public final class Utils {
+
+}

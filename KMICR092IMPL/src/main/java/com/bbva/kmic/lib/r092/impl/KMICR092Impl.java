@@ -1,0 +1,227 @@
+package com.bbva.kmic.lib.r092.impl;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+import java.util.List;
+import java.util.Map;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import Utils.*;
+
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovementFilter;
+import com.bbva.kmic.dto.payments.*;
+
+
+/**
+ * The KMICR092Impl class...
+ */
+public class KMICR092Impl extends KMICR092Abstract {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(KMICR092Impl.class);
+	private final MappingMeth mapper = new MappingMeth();
+	private final Consultas consult= new Consultas();
+	private final ReverseCalc calc = new ReverseCalc();
+
+	
+
+	/**
+	 * The execute method...
+	 */
+	@Override
+	public void executeCheckPayment(List<ReservePaymentDto> paymentDtoList) {
+		for (ReservePaymentDto paymentDto:paymentDtoList ) {
+	    final MicroloanMovementFilter movement = mapper.mapMicroloanMovementFilter(paymentDto);
+	    LOGGER.info("[KMICR092] Inicia proceso de búsqueda en KMICR060 de ContractID: " + paymentDto.getContractId());
+
+	    List<MicroloanMovement> result = kmicR060.executeListMicroloansMovements(movement);
+	    List<MicroloanMovement> paymentList = new ArrayList<>();
+
+	    if (result != null && !result.isEmpty()) {
+	        for (MicroloanMovement microloanMovement : result) {
+	            LOGGER.info("[KMICR092] ResultList: " + microloanMovement);
+
+	            if (isMatchingPayment(microloanMovement, paymentDto)) {
+	                if (paymentList.isEmpty()) {
+	                    LOGGER.info("[KMICR092] Pago encontrado: " + microloanMovement);
+	                    paymentList.add(microloanMovement);
+	                } else {
+	                    LOGGER.info("[KMICR092] Existe una duplicidad de pago en log payment, termina job");
+	                    break;
+	                }
+	            } else {
+	                logPaymentMismatch(microloanMovement, paymentDto);
+	            }
+	        }
+
+	        if (!paymentList.isEmpty()) {
+	            executeUpdateAmount(paymentDto, paymentList.get(0));
+	        }
+	    } else {
+	        LOGGER.info("[KMICR092] No existen pagos en el período: " + paymentDto.getPeriod());
+	    }
+		}
+	}
+
+	boolean isMatchingPayment(MicroloanMovement movement, ReservePaymentDto dto) {
+	    return (movement.getContractId().equals(dto.getContractId()))
+	        && (movement.getMicroloanId().equals(dto.getContractDisId()))
+	        && (movement.getAmount().getAmount() == dto.getAmount());
+	}
+
+	private void logPaymentMismatch(MicroloanMovement movement, ReservePaymentDto dto) {
+	    if (!movement.getContractId().equals(dto.getContractId())) {
+	        LOGGER.info("[KMICR092] No existe el contrato " + dto.getContractId() + " en el período " + dto.getPeriod());
+	    } else if (!movement.getMicroloanId().equals(dto.getContractDisId())) {
+	        LOGGER.info("[KMICR092] No existe disposición " + dto.getContractDisId() + " en el período " + dto.getPeriod());
+	    } else {
+	        LOGGER.info("[KMICR092] No hay pagos de " + movement.getAmount().getAmount() + " en el período " + dto.getPeriod());
+	    }
+	}
+
+
+	@Override
+	public void executeUpdateAmount(ReservePaymentDto paymentDto, MicroloanMovement movement) {
+
+	    List<MicroloanMovement> accEvents = consult.executeListMovements(movement);
+	    MicrocreditContractDto contractDto = consult.executeGetMicrocredit(paymentDto);
+	    List<ContDispositionDto> dispositionDtos = consult.executeGetDispositions(paymentDto);
+	    List<DspnAmortDto> amortDtos = consult.executeGetDspnAmort(dispositionDtos, movement.getInstallmentDate());
+
+	    contractDto = calc.calculateMicrocredit(contractDto, new BigDecimal(movement.getAmount().getAmount()));
+
+	    BigDecimal reverseAmountTotal = new BigDecimal(movement.getAmount().getAmount());
+	    List<MicroloanMovement> movements = new ArrayList<>();
+
+	    amortDtos = filterAmortWithCredit(amortDtos);
+	    Map<String, DspnAmortDto> amortCatalog = buildAmortCatalog(amortDtos);
+	    dispositionDtos.removeIf(d -> !amortCatalog.containsKey(d.getOperationId()));
+
+	    for (DspnAmortDto amortDto : amortDtos) {
+	        AmortConditionDto amorCond = consult.executeGetAmorCond(amortDto);
+
+	        BigDecimal crAmountPay = BigDecimal.valueOf(amortDto.getCrAmountPay()).setScale(2, RoundingMode.HALF_UP);
+	        BigDecimal saveAmount = crAmountPay;
+	        BigDecimal capitalPay = BigDecimal.ZERO;
+
+	        calc.calculateDisposition(dispositionDtos, saveAmount, amortDto.getOperationId());
+
+	        BigDecimal comision = BigDecimal.valueOf(calc.executeGetAmount(2, accEvents));
+	        BigDecimal iva = BigDecimal.valueOf(calc.executeGetAmount(3, accEvents));
+	        BigDecimal interes = comision.add(iva).setScale(2, RoundingMode.HALF_UP);
+
+	        AmortConditionDto newAmorCon;
+
+	        boolean paymentCapital = false;
+
+	        if (interes.compareTo(saveAmount) >= 0) {
+	            newAmorCon = calc.calculateAmortizationCondition(amorCond, comision, iva);
+	        } else {
+	            newAmorCon = calc.calculateAmortizationCondition(amorCond, comision, iva);
+	            capitalPay = saveAmount.subtract(interes).setScale(2, RoundingMode.HALF_UP);
+
+	            BigDecimal capAmountPay = BigDecimal.valueOf(amortDto.getCapAmountPay()).setScale(2, RoundingMode.HALF_UP);
+	            if (capAmountPay.compareTo(BigDecimal.ZERO) >= 0) {
+	                capAmountPay = capAmountPay.subtract(capitalPay.min(capAmountPay));
+	                amortDto.setCapAmountPay(capAmountPay.doubleValue());
+	                paymentCapital = true;
+	            }
+
+	            amortDto.setCrAmountPay(crAmountPay.doubleValue());
+	            amortDto.setStatusType("PENDING");
+	        }
+
+	        if (paymentCapital) {
+	            movements.add(calc.createLog(2, capitalPay.doubleValue(), movement, amortDto.getOperationId()));
+	        }
+
+	        movements.add(calc.createLog(3, comision.doubleValue(), movement, amortDto.getOperationId()));
+	        movements.add(calc.createLog(4, iva.doubleValue(), movement, amortDto.getOperationId()));
+
+	        reverseAmountTotal = reverseAmountTotal.subtract(saveAmount);
+
+	        consult.updateAmortCond(newAmorCon);
+	    }
+
+	    consult.updateMicroCredit(contractDto);
+	    consult.updateConDispotion(dispositionDtos);
+	    consult.updateDspn(amortDtos);
+	    insertLogs(movements);
+	}
+
+	private List<DspnAmortDto> filterAmortWithCredit(List<DspnAmortDto> amortDtos) {
+	    return amortDtos.stream()
+	        .filter(am -> am.getCrAmountPay() != 0)
+	        .collect(Collectors.toList());
+	}
+
+	private Map<String, DspnAmortDto> buildAmortCatalog(List<DspnAmortDto> amortDtos) {
+	    return amortDtos.stream()
+	        .collect(Collectors.toMap(DspnAmortDto::getOperationId, Function.identity()));
+	}
+
+	
+	@Override
+	public void insertLogs(List<MicroloanMovement> movements) {
+	    int res = kmicR060.executeCreateMicroloanMovements(movements);
+	    if (res == 0) {
+	        LOGGER.info("Problema al insertar Log");
+	    }
+	}
+
+
+	public MicrocreditContractDto executeGetMicrocredit(ReservePaymentDto paymentDto) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public int updateMicroCredit(MicrocreditContractDto contractDto) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public List<ContDispositionDto> executeGetDispositions(ReservePaymentDto paymentDto) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public int updateConDispotion(List<ContDispositionDto> dispositionDtos) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public List<DspnAmortDto> executeGetDspnAmort(List<ContDispositionDto> dispositionDtos,
+			java.util.Date paymentPeriod) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public int updateDspn(List<DspnAmortDto> amortDtos) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public List<MicroloanMovement> executeListMovements(MicroloanMovement movement) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public AmortConditionDto executeGetAmorCond(DspnAmortDto dspnAmortDto) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public int updateAmortCond(AmortConditionDto newAmorCon) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+}
+
+

@@ -1,0 +1,73 @@
+package Utils;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+
+
+import com.bbva.kmic.dto.payments.*;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+
+public class ReverseCalc {
+
+    public MicrocreditContractDto calculateMicrocredit(MicrocreditContractDto contractDto, BigDecimal reverseAmountTotal) {
+        BigDecimal drwdnAmount = BigDecimal.valueOf(contractDto.getDrwdnAmount()).add(reverseAmountTotal);
+        BigDecimal availableAmount = BigDecimal.valueOf(contractDto.getAvailableAmount()).subtract(reverseAmountTotal);
+        contractDto.setDrwdnAmount(drwdnAmount.doubleValue());
+        contractDto.setAvailableAmount(availableAmount.doubleValue());
+        return contractDto;
+    }
+
+    public ContDispositionDto calculateDisposition(List<ContDispositionDto> dispositionDtos, BigDecimal saveAmount, String operationId) {
+        for (ContDispositionDto dto : dispositionDtos) {
+            if (dto.getOperationId().equals(operationId)) {
+                BigDecimal recovered = BigDecimal.valueOf(dto.getRecoveredTotal()).subtract(saveAmount);
+                BigDecimal repayment = BigDecimal.valueOf(dto.getRepaymentAmount()).add(saveAmount);
+                dto.setRecoveredTotal(recovered.doubleValue());
+                dto.setRepaymentAmount(repayment.doubleValue());
+                if (repayment.compareTo(BigDecimal.ZERO) != 0) {
+                    dto.setStatusType("PENDING");
+                }
+                return dto;
+            }
+        }
+        return null;
+    }
+
+    public AmortConditionDto calculateAmortizationCondition(AmortConditionDto amorCond, BigDecimal comision, BigDecimal iva) {
+        BigDecimal fee = BigDecimal.valueOf(amorCond.getFeeAmount()).subtract(comision);
+        BigDecimal tax = BigDecimal.valueOf(amorCond.getRecTaxAmount()).subtract(iva);
+        amorCond.setFeeAmount(fee.doubleValue());
+        amorCond.setRecTaxAmount(tax.doubleValue());
+        amorCond.setStatusType("PENDING");
+        return amorCond;
+    }
+
+    public BigDecimal calculateCapitalPay(BigDecimal saveAmount, BigDecimal interes, BigDecimal capAmountPay) {
+        BigDecimal capitalPay = saveAmount.subtract(interes).setScale(2, RoundingMode.HALF_UP);
+        if (capAmountPay.compareTo(BigDecimal.ZERO) >= 0) {
+            if (capitalPay.compareTo(capAmountPay) <= 0) {
+                return capAmountPay.subtract(capitalPay);
+            } else {
+                return BigDecimal.ZERO;
+            }
+        }
+        return capAmountPay;
+    }
+
+    public Double extractAmountByType(int id, List<MicroloanMovement> listEvents) {
+        String code = null;
+        switch (id) {
+            case 1: code = "PAGMENCA"; break;
+            case 2: code = "PGMNCMDI"; break;
+            case 3: code = "PGMNIVAC"; break;
+        }
+        if (code == null) return 0.0;
+        for (MicroloanMovement m : listEvents) {
+            if (m.getAccount().getEvent().getCode().equals(code)) {
+                return m.getAmount().getAmount();
+            }
+        }
+        return 0.0;
+    }
+}

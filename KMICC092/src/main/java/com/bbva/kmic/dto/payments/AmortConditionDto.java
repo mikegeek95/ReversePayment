@@ -1,0 +1,127 @@
+package com.bbva.kmic.dto.payments;
+
+import java.util.Date;
+import java.util.Objects;
+
+public class AmortConditionDto {
+	
+	private String contractId;
+	private String operationId;
+	private Date itmDate;
+	private String statusType;
+	private double econdAmount;
+	private double feeAmount;
+	private double taxAmount;
+	private double recTaxAmount;
+	
+	public AmortConditionDto() {
+	}
+
+	public AmortConditionDto(String contractId, String operationId, Date itmDate, String statusType, double econdAmount,
+			double feeAmount, double taxAmount, double recTaxAmount) {
+		this.contractId = contractId;
+		this.operationId = operationId;
+		this.itmDate = itmDate;
+		this.statusType = statusType;
+		this.econdAmount = econdAmount;
+		this.feeAmount = feeAmount;
+		this.taxAmount = taxAmount;
+		this.recTaxAmount = recTaxAmount;
+	}
+
+	public String getContractId() {
+		return contractId;
+	}
+
+	public void setContractId(String contractId) {
+		this.contractId = contractId;
+	}
+
+	public String getOperationId() {
+		return operationId;
+	}
+
+	public void setOperationId(String operationId) {
+		this.operationId = operationId;
+	}
+
+	public Date getItmDate() {
+		return itmDate;
+	}
+
+	public void setItmDate(Date itmDate) {
+		this.itmDate = itmDate;
+	}
+
+	public String getStatusType() {
+		return statusType;
+	}
+
+	public void setStatusType(String statusType) {
+		this.statusType = statusType;
+	}
+
+	public double getEcondAmount() {
+		return econdAmount;
+	}
+
+	public void setEcondAmount(double econdAmount) {
+		this.econdAmount = econdAmount;
+	}
+
+	public double getFeeAmount() {
+		return feeAmount;
+	}
+
+	public void setFeeAmount(double feeAmount) {
+		this.feeAmount = feeAmount;
+	}
+
+	public double getTaxAmount() {
+		return taxAmount;
+	}
+
+	public void setTaxAmount(double taxAmount) {
+		this.taxAmount = taxAmount;
+	}
+
+	public double getRecTaxAmount() {
+		return recTaxAmount;
+	}
+
+	public void setRecTaxAmount(double recTaxAmount) {
+		this.recTaxAmount = recTaxAmount;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(contractId, econdAmount, feeAmount, itmDate, operationId, recTaxAmount, statusType,
+				taxAmount);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		AmortConditionDto other = (AmortConditionDto) obj;
+		return Objects.equals(contractId, other.contractId)
+				&& Double.doubleToLongBits(econdAmount) == Double.doubleToLongBits(other.econdAmount)
+				&& Double.doubleToLongBits(feeAmount) == Double.doubleToLongBits(other.feeAmount)
+				&& Objects.equals(itmDate, other.itmDate) && Objects.equals(operationId, other.operationId)
+				&& Double.doubleToLongBits(recTaxAmount) == Double.doubleToLongBits(other.recTaxAmount)
+				&& Objects.equals(statusType, other.statusType)
+				&& Double.doubleToLongBits(taxAmount) == Double.doubleToLongBits(other.taxAmount);
+	}
+
+	@Override
+	public String toString() {
+		return "AmortConditionDto [contractId=" + contractId + ", operationId=" + operationId + ", itmDate=" + itmDate
+				+ ", statusType=" + statusType + ", econdAmount=" + econdAmount + ", feeAmount=" + feeAmount
+				+ ", taxAmount=" + taxAmount + ", recTaxAmount=" + recTaxAmount + "]";
+	}
+
+}

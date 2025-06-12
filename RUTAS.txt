@@ -1,0 +1,57 @@
+RUTAS:
+
+TEST:
+InputFile=C:/Users/Inetum/Documents/Recursos/input.txt
+
+
+
+consulta:
+SELECT
+    G_CONTRACT_ID,
+    GF_MOV_DATE,
+    GF_SEQUENCE_ID,
+    GF_OPERATION_PAGE_ID,
+    GF_ACCT_MOV_ID,
+    G_MICROCREDIT_MOVEMENT_TYPE,
+    GF_MOVEMENT_AMOUNT,
+    G_CURRENCY_ID,
+    G_ACTIVE_MOVEMENT_IND_TYPE,
+    GF_GL_ACCOUNT_DATE,
+    GF_INSTALLMENT_PERIOD_DATE,
+    GF_GL_ACCOUNTING_STRING_ID,
+    G_LOCAL_CONTRACT_TYPE,
+    GF_MOV_ASSO_ACCOUNT_ID,
+    GF_TRACKING_TRANSACTION_DESC,
+    GF_ACCOUNTING_POSITION_ID,
+    GF_NEW_CUST_REGIONAL_CENTRE_ID,
+    GF_APP_CHANNEL_ID,
+    GF_CUSTOMER_PROPOSAL_BRANCH_ID,
+    GF_CREDIT_REQUEST_ORIGIN_RC_ID,
+    GF_USER_AUDIT_ID,
+    GF_AUDIT_DATE
+FROM
+    KMIC.T_KMIC_MCRCR_LOG_MOVEMENT
+WHERE
+    G_CONTRACT_ID = 'MX007400219200001818'
+AND
+    GF_OPERATION_PAGE_ID = '202408200324351553'
+AND
+    GF_INSTALLMENT_PERIOD_DATE = TO_DATE('01/07/2024', 'DD/MM/YYYY')
+AND
+    G_MICROCREDIT_MOVEMENT_TYPE = 'PGAUTCON' -- Asumiendo que '01' es el valor para el evento de "DISPOSICIÓN" basado en el nombre del microloanId
+;
+
+
+okFile=C:/Users/Inetum/Documents/Recursos/PruebaOK.txt,failFile=C:/Users/Inetum/Documents/Recursos/PruebaFail.txt,fileName=C:/Users/Inetum/Documents/Recursos/MMMSF_D02_20250508_MICROCREDITS_RESP.txt,fileDate=20250508
+
+
+
+2023-07-01
+okFile=C:/Users/Inetum/Documents/Recursos/PruebaOK.txt,failFile=C:/Users/Inetum/Documents/Recursos/PruebaFail.txt,fileName=C:/Users/Inetum/Documents/Recursos/MMMSF_D02_20230701_MICROCREDITS_RESP.txt,fileDate=20230701
+
+
+okFile=C:/Users/Inetum/Documents/Recursos/PruebaOK.txt,failFile=C:/Users/Inetum/Documents/Recursos/PruebaFail.txt,fileName=C:/Users/Inetum/Documents/Recursos/MMMSF_D02_20230710_MICROCREDITS_RESP.txt,fileDate=20230710
+
+
+
+okFile=C:/Users/Inetum/Documents/Recursos/PruebaOK.txt,failFile=C:/Users/Inetum/Documents/Recursos/PruebaFail.txt,fileName=C:/Users/Inetum/Documents/Recursos/MMMSF_D02_20230801_MICROCREDITS_RESP.txt,fileDate=20230801

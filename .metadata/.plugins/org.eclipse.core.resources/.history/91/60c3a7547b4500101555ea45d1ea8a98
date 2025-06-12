@@ -1,0 +1,84 @@
+package com.bbva.kmic.lib.r092.impl;
+
+
+
+import com.bbva.kmic.dto.commonmodel.Account;
+import com.bbva.kmic.dto.commonmodel.AccountEvent;
+import com.bbva.kmic.dto.commonmodel.Amount;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+import com.bbva.kmic.dto.payments.ProductInputDTO;
+
+import java.sql.Date;
+import java.util.*;
+
+public final class ReverseUtils {
+
+    private ReverseUtils() {
+        // Utilidad estática, constructor privado
+    }
+
+    public static MicroloanMovement mapToMicroloanMovement(ProductInputDTO dto) {
+        MicroloanMovement movimiento = new MicroloanMovement();
+        movimiento.setContractId(dto.getContractId());
+        movimiento.setMicroloanId(dto.getMicroloanId());
+        movimiento.setInstallmentDate(dto.getInstallmentDate());
+
+        Amount amount = new Amount();
+        amount.setAmount(dto.getAmount());
+        movimiento.setAmount(amount);
+
+        Account account = new Account();
+        AccountEvent event = new AccountEvent(); // El tipo se establecerá luego
+        account.setEvent(event);
+        movimiento.setAccount(account);
+
+        return movimiento;
+    }
+
+    public static Map<String, Object> buildReverseParams(MicroloanMovement bean) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("contractId", bean.getContractId());
+        map.put("microloanId", bean.getMicroloanId());
+        map.put("installmentDate", new Date(bean.getInstallmentDate().getTime()));
+        map.put("amount", bean.getAmount().getAmount());
+        map.put("eventCode", bean.getAccount().getEvent().getCode());
+        map.put("date", new Date(System.currentTimeMillis()));
+        map.put("userAudit", bean.getUserAuditId());
+        map.put("sequenceId", bean.getNumber());
+        map.put("channelId", bean.getChannelCode());
+
+        if (bean.getRelatedContract() != null) {
+            map.put("branchId", bean.getRelatedContract().getBranchId());
+            map.put("originId", bean.getRelatedContract().getOriginId());
+        }
+
+        return map;
+    }
+
+    public static List<MicroloanMovement> mapResultToMovements(List<Map<String, Object>> resultList) {
+        List<MicroloanMovement> movimientos = new ArrayList<>();
+        for (Map<String, Object> row : resultList) {
+            MicroloanMovement m = new MicroloanMovement();
+            m.setContractId((String) row.get("G_CONTRACT_ID"));
+            m.setMicroloanId((String) row.get("GF_OPERATION_PAGE_ID"));
+            m.setInstallmentDate((Date) row.get("GF_INSTALLMENT_PERIOD_DATE"));
+            m.setAcctMovId((String) row.get("GF_ACCT_MOV_ID"));
+            m.setUserAuditId((String) row.get("GF_USER_AUDIT_ID"));
+            m.setNumber(((Number) row.get("GF_SEQUENCE_ID")).intValue());
+            m.setChannelCode((String) row.get("GF_APP_CHANNEL_ID"));
+
+            Amount amount = new Amount();
+            amount.setAmount(((Number) row.get("GF_MOVEMENT_AMOUNT")).doubleValue());
+            m.setAmount(amount);
+
+            Account account = new Account();
+            AccountEvent event = new AccountEvent();
+            event.setCode((String) row.get("G_MICROCREDIT_MOVEMENT_TYPE"));
+            account.setEvent(event);
+            m.setAccount(account);
+
+            movimientos.add(m);
+        }
+        return movimientos;
+    }
+}

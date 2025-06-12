@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.bbva.elara</groupId>
+		<artifactId>elara-project</artifactId>
+		<version>7.13.3</version>
+	</parent>
+	<groupId>com.bbva.kmic</groupId>
+	<artifactId>KMICR060-parent</artifactId>
+	<version>0.1.4</version>
+	<name>KMICR060-parent</name>
+	<description>Deployment unit kmicr060 of uuaa kmic</description>
+	<packaging>pom</packaging>
+	<properties>
+		<outputDirectoryLibraries>../target</outputDirectoryLibraries>
+		<apx.core.online.version>7.13.3</apx.core.online.version>
+		<apx.core.batch.version>7.13.1</apx.core.batch.version>
+		<jacoco.no.coverage>0.00</jacoco.no.coverage>
+		<jacoco.min.coverage>0.80</jacoco.min.coverage>
+		<jacoco.type.coverage>COMPLEXITY</jacoco.type.coverage>
+	</properties>
+	<modules>
+		<module>KMICR060</module>
+		<module>KMICR060IMPL</module>
+	</modules>
+</project>

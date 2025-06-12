@@ -1,0 +1,179 @@
+package Utils;
+
+import java.math.BigDecimal;
+
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.text.ParseException;
+import com.bbva.kmic.dto.payments.*;
+import com.bbva.kmic.lib.r092.impl.KMICR092Impl;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+
+public class ReverseCalc {
+	
+	Consultas consult= new Consultas();
+	MappingMeth mapper = new MappingMeth();
+	private static final Logger LOGGER = LoggerFactory.getLogger(KMICR092Impl.class);
+
+
+    
+	 public MicroloanMovement createLog(int id, double amountReverse, MicroloanMovement movement, String operationId) {
+	        Date fechaSoloFecha = getCurrentDateWithoutTime();
+	        AmountTypeDto amount = createAmountDto(fechaSoloFecha, amountReverse);
+
+	        MicroloanMovement mlMovement = null;
+
+	        switch (id) {
+	            case 1:
+	                mlMovement = mapMovementWithStatus(movement, amount, "ANPGMNCN");
+	                break;
+	            case 2:
+	                mlMovement = mapMovementWithOperation(movement, amount, "ANPGMNCA", operationId);
+	                break;
+	            case 3:
+	                mlMovement = mapMovementWithOperation(movement, amount, "ANPGMNCD", operationId);
+	                break;
+	            case 4:
+	                mlMovement = mapMovementWithOperation(movement, amount, "ANPGMNIC", operationId);
+	                break;
+	            default:
+	                LOGGER.info("Error al crear log");
+	                break;
+	        }
+
+	        return mlMovement;
+	    }
+	 
+	 private Date getCurrentDateWithoutTime() {
+	        try {
+	            SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+	            return format.parse(format.format(new Date()));
+	        } catch (ParseException e) {
+	            LOGGER.severe("Error parsing date: " + e.getMessage());
+	            return new Date();
+	        }
+	    }
+	
+	 private AmountTypeDto createAmountDto(Date date, double amountReverse) {
+        AmountTypeDto amount = new AmountTypeDto();
+        amount.setDate(date);
+        amount.setAmount(amountReverse);
+        return amount;
+    }
+
+    private MicroloanMovement mapMovementWithStatus(MicroloanMovement movement, AmountTypeDto amount, String status) {
+        amount.setStatus(status);
+        return mapper.mapToLog(movement, amount);
+    }
+
+    private MicroloanMovement mapMovementWithOperation(MicroloanMovement movement, AmountTypeDto amount, String status, String operationId) {
+        MicroloanMovement log = mapMovementWithStatus(movement, amount, status);
+        log.setMicroloanId(operationId);
+        return log;
+    }
+
+    public MicrocreditContractDto calculateMicrocredit(MicrocreditContractDto contractDto, BigDecimal reverseAmountTotal) {
+        BigDecimal drwdnAmount = new BigDecimal(contractDto.getDrwdnAmount()).add(reverseAmountTotal);
+        BigDecimal availableAmount = new BigDecimal(contractDto.getAvailableAmount()).subtract(reverseAmountTotal);
+
+        contractDto.setDrwdnAmount(drwdnAmount.doubleValue());
+        contractDto.setAvailableAmount(availableAmount.doubleValue());
+
+        return contractDto;
+    }
+
+    public AmortConditionDto calculateAmortizationCondition(AmortConditionDto amorCond, BigDecimal comision, BigDecimal iva) {
+        BigDecimal feeAmount = new BigDecimal(amorCond.getFeeAmount()).subtract(comision);
+        BigDecimal recTaxAmount = new BigDecimal(amorCond.getRecTaxAmount()).subtract(iva);
+
+        amorCond.setFeeAmount(feeAmount.doubleValue());
+        amorCond.setRecTaxAmount(recTaxAmount.doubleValue());
+        amorCond.setStatusType("PENDING");
+
+        return amorCond;
+    }
+
+    public ContDispositionDto calculateDisposition(List<ContDispositionDto> dispositionDtos, BigDecimal saveAmount, String operationId) {
+        ContDispositionDto dispositionDto = findDispositionByOperationId(dispositionDtos, operationId);
+
+        if (dispositionDto == null) {
+            LOGGER.warning("No se encontró disposición para operationId: " + operationId);
+            return null;
+        }
+
+        BigDecimal recoveredTotal = new BigDecimal(dispositionDto.getRecoveredTotal()).subtract(saveAmount);
+        BigDecimal repayment = new BigDecimal(dispositionDto.getRepaymentAmount()).add(saveAmount);
+
+        dispositionDto.setRecoveredTotal(recoveredTotal.doubleValue());
+        dispositionDto.setRepaymentAmount(repayment.doubleValue());
+
+        if (repayment.compareTo(BigDecimal.ZERO) != 0) {
+            dispositionDto.setStatusType("PENDING");
+        }
+
+        return dispositionDto;
+    }
+
+    private ContDispositionDto findDispositionByOperationId(List<ContDispositionDto> dispositions, String operationId) {
+        return dispositions.stream()
+                .filter(d -> d.getOperationId().equals(operationId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public Double executeGetAmount(int id, List<MicroloanMovement> listEvents) {
+        String eventCode = getEventCodeById(id);
+
+        if (eventCode == null) return 0.0;
+
+        return listEvents.stream()
+                .filter(m -> m.getAccount().getEvent().getCode().equals(eventCode))
+                .map(m -> m.getAmount().getAmount())
+                .findFirst()
+                .orElse(0.0);
+    }
+
+    private String getEventCodeById(int id) {
+        switch (id) {
+            case 1: return "PAGMENCA"; // Capital
+            case 2: return "PGMNCMDI"; // Comisión
+            case 3: return "PGMNIVAC"; // IVA
+            default: return null;
+        }
+		
+		switch (id) {
+		case 1://Capital
+			for (MicroloanMovement microloanMovement : listEvents) {
+				if (microloanMovement.getAccount().getEvent().getCode().equals("PAGMENCA")) { 
+					return microloanMovement.getAmount().getAmount();
+				}
+			}
+			break;
+
+		case 2: //Comision
+			for (MicroloanMovement microloanMovement : listEvents) {
+				if (microloanMovement.getAccount().getEvent().getCode().equals("PGMNCMDI")) { 
+					return microloanMovement.getAmount().getAmount();
+				}
+			}
+			break;
+
+		case 3: //Iva
+			for (MicroloanMovement microloanMovement : listEvents) {
+				if (microloanMovement.getAccount().getEvent().getCode().equals("PGMNIVAC")) { 
+					return microloanMovement.getAmount().getAmount();
+				}
+			}
+			break;
+
+		default:
+			return 0.0;
+		}
+		
+		return 0.0;
+	}
+
+}

@@ -1,0 +1,26 @@
+package src.main.java.com.bbva.kmic.batch;
+
+public class DeleteInputFile {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(DeleteInputFile.class);
+
+    private String filename;
+    private PathUtils pathUtils;
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
+    public void setPathUtils(PathUtils pathUtils) {
+        this.pathUtils = pathUtils;
+    }
+
+    @Override
+    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+        Path path = pathUtils.getFile(filename);
+        Files.deleteIfExists(path);
+        LOG.info("[MCURJ003] Archivo eliminado: {}", path.toString());
+        return RepeatStatus.FINISHED;
+    }
+
+}

@@ -1,0 +1,170 @@
+package com.bbva.kmic.lib.r092.impl;
+
+import com.bbva.apx.exception.db.DBException;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+import com.bbva.kmic.dto.payments.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class ConsultasTest {
+
+    @Mock
+    private MappingMeth mapper;
+
+    @Mock
+    private JdbcUtils jdbcUtils;
+
+    @InjectMocks
+    private Consultas consultas;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        consultas = new Consultas();
+        consultas.jdbcUtils = jdbcUtils;
+    }
+
+    @Test
+    void executeGetMicrocredit_success() throws DBException {
+        ReservePaymentDto dto = new ReservePaymentDto();
+        Map<String, Object> args = new HashMap<>();
+        args.put("contractId", "123");
+        Map<String, Object> result = new HashMap<>();
+        MicrocreditContractDto expected = new MicrocreditContractDto();
+
+        when(mapper.mapingMicrocredit(dto)).thenReturn(args);
+        when(jdbcUtils.queryForMap(anyString(), eq(args))).thenReturn(result);
+        when(mapper.mapMicrocreditContract(result)).thenReturn(expected);
+
+        MicrocreditContractDto actual = consultas.executeGetMicrocredit(dto);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void updateMicroCredit_success() throws DBException {
+        MicrocreditContractDto contractDto = new MicrocreditContractDto();
+        Map<String, Object> args = new HashMap<>();
+        when(mapper.mapingMicroCredit(contractDto)).thenReturn(args);
+        when(jdbcUtils.update(anyString(), eq(args))).thenReturn(1);
+
+        int result = consultas.updateMicroCredit(contractDto);
+        assertEquals(1, result);
+    }
+
+    @Test
+    void executeGetDispositions_success() throws DBException {
+        ReservePaymentDto dto = new ReservePaymentDto();
+        Map<String, Object> args = new HashMap<>();
+        List<Map<String, Object>> queryResult = new ArrayList<>();
+        List<ContDispositionDto> expected = new ArrayList<>();
+
+        when(mapper.mappingDispositions(dto)).thenReturn(args);
+        when(jdbcUtils.queryForList(anyString(), eq(args))).thenReturn(queryResult);
+        when(mapper.mapDispositions(queryResult)).thenReturn(expected);
+
+        List<ContDispositionDto> actual = consultas.executeGetDispositions(dto);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void updateConDispotion_success() throws DBException {
+        ContDispositionDto dto = new ContDispositionDto();
+        dto.setContractId("123");
+        List<ContDispositionDto> list = Collections.singletonList(dto);
+        Map<String, Object> params = new HashMap<>();
+
+        when(mapper.mappingConDispotion(dto)).thenReturn(params);
+        when(jdbcUtils.update(anyString(), eq(params))).thenReturn(1);
+
+        int result = consultas.updateConDispotion(list);
+        assertEquals(1, result);
+    }
+
+    @Test
+    void executeGetDspnAmort_success() throws DBException {
+        ContDispositionDto dto = new ContDispositionDto();
+        dto.setContractId("123");
+        List<ContDispositionDto> dispositionDtos = Collections.singletonList(dto);
+        Date paymentPeriod = new Date();
+        Map<String, Object> params = new HashMap<>();
+        List<Map<String, Object>> result = new ArrayList<>();
+        List<DspnAmortDto> mapped = new ArrayList<>();
+
+        when(mapper.buildDspnAmortParams(dto, paymentPeriod)).thenReturn(params);
+        when(jdbcUtils.queryForList(anyString(), eq(params))).thenReturn(result);
+        when(mapper.mapDspnAmorts(result)).thenReturn(mapped);
+
+        List<DspnAmortDto> actual = consultas.executeGetDspnAmort(dispositionDtos, paymentPeriod);
+        assertEquals(mapped, actual);
+    }
+
+    @Test
+    void updateDspn_success() throws DBException {
+        DspnAmortDto dto = new DspnAmortDto();
+        dto.setContractId("123");
+        List<DspnAmortDto> list = Collections.singletonList(dto);
+        Map<String, Object> params = new HashMap<>();
+
+        when(mapper.buildUpdateDspnParams(dto)).thenReturn(params);
+        when(jdbcUtils.update(anyString(), eq(params))).thenReturn(1);
+
+        int result = consultas.updateDspn(list);
+        assertEquals(1, result);
+    }
+
+    @Test
+    void executeListMovements_success() throws DBException {
+        MicroloanMovement movement = mock(MicroloanMovement.class);
+        when(movement.getAccount()).thenReturn(new AccountDto("12345"));
+        Map<String, Object> params = new HashMap<>();
+        List<Map<String, Object>> result = new ArrayList<>();
+        List<MicroloanMovement> mapped = new ArrayList<>();
+
+        when(mapper.buildListMovementsParams(movement)).thenReturn(params);
+        when(jdbcUtils.queryForList(anyString(), eq(params))).thenReturn(result);
+        when(mapper.mapListMicroloanMovement(result)).thenReturn(mapped);
+
+        List<MicroloanMovement> actual = consultas.executeListMovements(movement);
+        assertEquals(mapped, actual);
+    }
+
+    @Test
+    void executeGetAmorCond_success() throws DBException {
+        DspnAmortDto dto = new DspnAmortDto();
+        dto.setContractId("123");
+        Map<String, Object> params = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
+        AmortConditionDto expected = new AmortConditionDto();
+
+        when(mapper.buildAmortConditionParams(dto)).thenReturn(params);
+        when(jdbcUtils.queryForMap(anyString(), eq(params))).thenReturn(result);
+        when(mapper.mapAmortCondition(result)).thenReturn(expected);
+
+        AmortConditionDto actual = consultas.executeGetAmorCond(dto);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void updateAmortCond_success() throws DBException {
+        AmortConditionDto dto = new AmortConditionDto();
+        dto.setContractId("123");
+        Map<String, Object> params = new HashMap<>();
+
+        when(mapper.buildUpdateAmortCondParams(dto)).thenReturn(params);
+        when(jdbcUtils.update(anyString(), eq(params))).thenReturn(1);
+
+        int result = consultas.updateAmortCond(dto);
+        assertEquals(1, result);
+    }
+}
+
+// Nota: se debe tener una clase JdbcUtils mockeable o en caso contrario,
+// Consultas debe recibir jdbcUtils y mapper por constructor o setters para facilitar la inyección de mocks.

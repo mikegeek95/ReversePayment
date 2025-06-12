@@ -1,0 +1,29 @@
+package com.bbva.kmic.batch;
+
+import com.bbva.kmic.dto.payments.ProductInputDTO;
+import com.bbva.kmic.lib.r092.KMICR092;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.batch.item.ItemWriter;
+import java.util.List;
+
+
+public class ProductWriter implements ItemWriter<ProductInputDTO>{
+	
+	private static final Logger LOG = LoggerFactory.getLogger(ProductMapper.class);
+
+	
+	KMICR092 kmicR092;
+	public void setkmicR092(KMICR092 kmicr001) {
+		this.kmicR092 = kmicr001;
+	}
+	
+    @Override
+    public void write(List<? extends ProductInputDTO> list) throws Exception {
+    	//kmicR092.executeInsertProductWorkshop(list);
+    	LOG.info(list.get(0).getNombre() );
+    	LOG.info("[kmicjapr] Starting escritura");
+    }
+
+}

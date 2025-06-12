@@ -1,0 +1,46 @@
+package com.bbva.kmic.batch;
+
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.repeat.RepeatStatus;
+
+@ExtendWith(MockitoExtension.class)
+class DeleteInputFileTest {
+
+    @Mock
+    private PathUtils pathUtils;
+
+    @Mock
+    private StepContribution stepContribution;
+
+    @Mock
+    private ChunkContext chunkContext;
+
+    @InjectMocks
+    private DeleteInputFile deleteInputFile;
+
+    @Test
+    void testExecuteDeletesFileSuccessfully() throws Exception {
+        String fileName = "testFile.txt";
+        Path mockPath = Paths.get(fileName);
+
+        when(pathUtils.getFile(fileName)).thenReturn(mockPath);
+
+        deleteInputFile.setFilename(fileName);
+
+        RepeatStatus result = deleteInputFile.execute(stepContribution, chunkContext);
+
+        assertEquals(RepeatStatus.FINISHED, result);
+    }
+}

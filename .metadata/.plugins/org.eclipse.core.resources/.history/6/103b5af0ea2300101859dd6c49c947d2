@@ -1,0 +1,108 @@
+package com.bbva.kmic.batch;
+
+import static org.mockito.Mockito.*;
+import static org.junit.Assert.*;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.bbva.kmic.dto.payments.ProductInputDTO;
+import com.bbva.kmic.lib.r092.KMICR092;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = {
+        "classpath:/META-INF/spring/batch/beans/KMICJ044-01-ZZ-beans.xml",
+        "classpath:/META-INF/spring/batch/jobs/KMICJ044-01-ZZ-context.xml"
+})
+public class KMICJ04401ZZTest {
+
+    @Autowired
+    private JobLauncherTestUtils jobLauncherTestUtils;
+
+    @Test
+    public void testLaunchJob() throws Exception {
+        Path ruta = Paths.get("src/test/resources/input/mock_input.txt").toAbsolutePath();
+        HashMap<String, JobParameter> parameters = new HashMap<>();
+        parameters.put("InputFile", new JobParameter(ruta.toString()));
+        JobParameters jobParameters = new JobParameters(parameters);
+
+        JobExecution jobExecution = jobLauncherTestUtils.launchJob(jobParameters);
+
+        assertEquals("COMPLETED", jobExecution.getExitStatus().getExitCode());
+    }
+
+    @Test
+    public void testDeleteInputFile() throws Exception {
+        DeleteInputFile deleteInputFile = new DeleteInputFile();
+        PathUtils pathUtils = mock(PathUtils.class);
+        Path mockPath = Paths.get("src/test/resources/input/mock_input.txt").toAbsolutePath();
+        
+        deleteInputFile.setFilename(mockPath.toString());
+        deleteInputFile.setPathUtils(pathUtils);
+
+        when(pathUtils.getFile(mockPath.toString())).thenReturn(mockPath);
+
+        // Ejecutar
+        deleteInputFile.execute(null, null);
+
+        // Verificar
+        verify(pathUtils).getFile(mockPath.toString());
+    }
+
+    @Test
+    public void testProductMapper() throws Exception {
+        KMICProductMapper mapper = new KMICProductMapper();
+        
+        org.springframework.batch.item.file.transform.DelimitedLineTokenizer tokenizer = new org.springframework.batch.item.file.transform.DelimitedLineTokenizer();
+        tokenizer.setDelimiter("|");
+        tokenizer.setNames("contractId", "microloanId", "installmentDate", "amount", "tipoMovimiento");
+        
+        String line = "MX007400219200001818|202408200324351553|01/07/2024|1216.33|PGAUTCON";
+        org.springframework.batch.item.file.transform.FieldSet fieldSet = tokenizer.tokenize(line);
+        
+        ProductInputDTO dto = mapper.mapFieldSet(fieldSet);
+
+        assertEquals("MX007400219200001818", dto.getContractId());
+        assertEquals("202408200324351553", dto.getMicroloanId());
+        assertNotNull(dto.getInstallmentDate());
+        assertEquals(1216.33, dto.getAmount(), 0.01);
+        assertEquals("PGAUTCON", dto.getTipoMovimiento());
+    }
+
+    @Test
+    public void testProductWriter() throws Exception {
+        KMICProductWriter writer = new KMICProductWriter();
+        KMICR092 kmicr092 = mock(KMICR092.class);
+
+        writer.setKmicR092(kmicr092);
+
+        ProductInputDTO dto = new ProductInputDTO();
+        dto.setContractId("MX007400219200001818");
+        dto.setMicroloanId("202408200324351553");
+        dto.setInstallmentDate(new java.text.SimpleDateFormat("dd/MM/yyyy").parse("01/07/2024"));
+        dto.setAmount(1216.33);
+        dto.setTipoMovimiento("PGAUTCON");
+
+        List<ProductInputDTO> list = Collections.singletonList(dto);
+
+        writer.write(list);
+
+        verify(kmicr092, times(1)).executeGetReversePayments(list);
+    }
+}
