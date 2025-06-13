@@ -38,7 +38,6 @@ public interface KMICR060 {
 	 */
 	MicroloanMovement executeGetMicroloanMovement(MicroloanMovement microloanMovement);
 	
-	List<MicroloanMovement> mapFromResultSet(List<Map<String, Object>> resultSet);
 
 
 }
