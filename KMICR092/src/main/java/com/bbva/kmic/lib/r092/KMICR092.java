@@ -19,5 +19,6 @@ public interface KMICR092 {
 	 int executeUpdateAmortizationContition (Map<String, Object> args);
 	 int executeUpdateDspnAmort (Map<String, Object> args);
 	List<MicroloanMovement> getMovementList(Map<String, Object> params);
+	int executeUpdateDisposition(Map<String, Object> args);
 
 }

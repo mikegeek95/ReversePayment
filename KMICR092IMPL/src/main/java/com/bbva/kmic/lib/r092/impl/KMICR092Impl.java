@@ -3,14 +3,11 @@ package com.bbva.kmic.lib.r092.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
-import java.sql.Date;
 
 import com.bbva.kmic.dto.payments.ProductInputDTO;
-import com.bbva.kmic.dto.commonmodel.Amount;
 import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
 import com.bbva.apx.exception.db.DBException;
 
@@ -18,9 +15,6 @@ import Constants.Constants;
 import Constants.Diccionario;
 import Utils.Mapper;
 
-/**
- * Implementación concreta del proceso KMICR092
- */
 public class KMICR092Impl extends KMICR092Abstract {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KMICR092Impl.class);
@@ -30,64 +24,58 @@ public class KMICR092Impl extends KMICR092Abstract {
         for (ProductInputDTO dto : items) {
             LOGGER.info("[KMICR092] DTO recibido: {}", dto);
 
-            MicroloanMovement inputMovement = mapToMicroloanMovement(dto);
-            MicroloanMovement resultMovement = kmicR060.executeGetMicroloanMovement(inputMovement);
+            MicroloanMovement inputMovement = Mapper.mapToMicroloanMovement(dto);
+            MicroloanMovement resultMovement = fetchMicroloanMovement(inputMovement);
 
-            if (resultMovement != null) {
-                LOGGER.info("Movimiento encontrado: {}", resultMovement);
-
-                Map<String, Object> args = buildQueryParams(inputMovement);
-                List<MicroloanMovement> movements = getMovementList(args);
-                processReversals(movements);
-            } else {
+            if (resultMovement == null) {
                 LOGGER.warn("No se encontró movimiento para: {}", dto);
+                continue;
             }
+
+            LOGGER.info("Movimiento encontrado: {}", resultMovement);
+
+            Map<String, Object> params = Mapper.buildQueryParams(inputMovement);
+            List<MicroloanMovement> movementList = retrieveMovements(params);
+
+            if (movementList.isEmpty()) {
+                LOGGER.warn("No hay movimientos para procesar para contrato: {}", params.get("contractId"));
+                continue;
+            }
+
+            applyUpdatesToContract(params);
+            applyReversalsAndInsert(movementList);
         }
     }
 
-    private MicroloanMovement mapToMicroloanMovement(ProductInputDTO dto) {
-        MicroloanMovement movement = new MicroloanMovement();
+    private MicroloanMovement fetchMicroloanMovement(MicroloanMovement inputMovement) {
+        try {
+            LOGGER.info("Buscando movimiento con parámetros: {}", inputMovement);
+            MicroloanMovement result = kmicR060.executeGetMicroloanMovement(inputMovement);
 
-        movement.setContractId(dto.getContractId());
-        movement.setMicroloanId(dto.getMicroloanId());
-        movement.setInstallmentDate(dto.getInstallmentDate());
+            if (result == null) {
+                LOGGER.warn("Movimiento no encontrado: {}", inputMovement);
+            }
 
-        Amount amount = new Amount();
-        amount.setAmount(dto.getAmount());
-        movement.setAmount(amount);
-
-        return movement;
-    }
-
-    private Map<String, Object> buildQueryParams(MicroloanMovement movement) {
-        Map<String, Object> params = new HashMap<>();
-        LOGGER.debug("Iniciando construcción de parámetros para: {}", movement);
-
-        params.put("contractId", movement.getContractId());
-        params.put("microloanId", movement.getMicroloanId());
-        params.put("date", new Date(movement.getInstallmentDate().getTime()));
-
-        if (movement.getAmount() != null) {
-            params.put("amount", movement.getAmount().getAmount());
+            return result;
+        } catch (Exception e) {
+            LOGGER.error("Error al obtener movimiento de microcrédito", e);
+            return null;
         }
-
-        if (movement.getAccount() != null && movement.getAccount().getEvent() != null) {
-            params.put("eventCode", movement.getAccount().getEvent().getCode());
-        }
-
-        LOGGER.debug("Parámetros construidos: {}", params);
-        return params;
     }
 
     @Override
     public List<MicroloanMovement> getMovementList(Map<String, Object> params) {
+        return retrieveMovements(params);
+    }
+
+    private List<MicroloanMovement> retrieveMovements(Map<String, Object> params) {
         List<MicroloanMovement> movements = new ArrayList<>();
 
         try {
-            LOGGER.info("Ejecutando consulta con parámetros: {}", params);
-            List<Map<String, Object>> rows = jdbcUtils.queryForList(Constants.select_list_moviemintos, params);
+            LOGGER.info("Consultando movimientos con parámetros: {}", params);
+            List<Map<String, Object>> rows = jdbcUtils.queryForList(Constants.SELECT_TRAE_DATOS_LOG, params);
             movements = Mapper.mapListMicroloanMovement(rows);
-            LOGGER.info("Movimientos recuperados correctamente para contrato: {}", params.get("contractId"));
+            LOGGER.info("Movimientos recuperados: {}", movements.size());
         } catch (Exception e) {
             LOGGER.error("Error al obtener movimientos para contrato: {}", params.get("contractId"), e);
         }
@@ -95,74 +83,84 @@ public class KMICR092Impl extends KMICR092Abstract {
         return movements;
     }
 
-    private void processReversals(List<MicroloanMovement> movements) {
+    private void applyUpdatesToContract(Map<String, Object> params) {
+        updateWithQuery(Constants.UPDATE_MICROCREDIT_CONTRACT, params);
+        updateWithQuery(Constants.UPDATE_MCRCR_DISPOSITION, params);
+        updateWithQuery(Constants.UPDATE_AMORTIZATION_CONDITION, params);
+        updateWithQuery(Constants.UPDATE_MCRCR_AMORTIZATION, params);
+    }
+
+    private void applyReversalsAndInsert(List<MicroloanMovement> movements) {
         for (MicroloanMovement movement : movements) {
-            String eventCode = movement.getAccount().getEvent().getCode();
-            LOGGER.debug("Procesando reverso para código de evento: {}", eventCode);
+            String originalCode = movement.getAccount().getEvent().getCode();
+            String reverseCode = Diccionario.obtenerCodigoContrario(originalCode);
 
-            switch (eventCode) {
-                case Diccionario.PGMNCMDI:
-                    // TODO: Lógica para PGMNCMDI
-                    break;
-
-                case Diccionario.ANULDISP:
-                    // TODO: Lógica para ANULDISP
-                    break;
-
-                case Diccionario.PAGMENCA:
-                default:
-                    // TODO: Lógica por defecto o para PAGMENCA
-                    break;
+            if (reverseCode != null && !reverseCode.isEmpty()) {
+                movement.getAccount().getEvent().setCode(reverseCode);
+                LOGGER.info("Código de reverso aplicado: {} → {}", originalCode, reverseCode);
+            } else {
+                LOGGER.warn("No se encontró código de reverso para: {}", originalCode);
             }
         }
+
+        insertMovementsBatch(movements);
     }
 
-    @Override
-    public int executeUpdateMicrocreditContract(Map<String, Object> args) {
-        return executeUpdate(Constants.MICRO_CREDIT_CONTRACT, args);
-    }
-
-    @Override
-    public int executeUpdateAmortizationContition(Map<String, Object> args) {
-        return executeUpdate(Constants.AMORTIZATION_CONDITION, args);
-    }
-
-    @Override
-    public int executeUpdateDspnAmort(Map<String, Object> args) {
-        return executeUpdate(Constants.MCECR_AMORTIZATION, args);
-    }
-
-    private int executeUpdate(String query, Map<String, Object> args) {
-        LOGGER.info("Ejecutando actualización para: {}", args.get("contractId"));
-        int result = 0;
-
+    private void updateWithQuery(String queryKey, Map<String, Object> args) {
+        LOGGER.info("Actualizando con query [{}] para contrato: {}", queryKey, args.get("contractId"));
         try {
-            LOGGER.debug("Parámetros: {}, Query: {}", args, query);
-            result = jdbcUtils.update(query, args);
-            LOGGER.info("Actualización completada para contrato: {}", args.get("contractId"));
+            jdbcUtils.update(queryKey, args);
+            LOGGER.info("Actualización exitosa para contrato: {}", args.get("contractId"));
         } catch (DBException e) {
-            LOGGER.error("Error en la actualización del contrato: {}", args.get("contractId"), e);
+        	LOGGER.info("Error en actualización con query [{}]: {}", queryKey, args.get("contractId"));
         }
-
-        return result;
     }
-    
-    public int executeInsertMicroloanMovements(List<MicroloanMovement> movements) {
-        LOGGER.info("Iniciando inserción de movimientos. Total a insertar: {}", movements != null ? movements.size() : 0);
 
+    public int insertMovementsBatch(List<MicroloanMovement> movements) {
         if (movements == null || movements.isEmpty()) {
-            LOGGER.warn("Lista de movimientos vacía o nula. No se insertará nada.");
+            LOGGER.warn("Lista vacía de movimientos. No se insertará nada.");
             return 0;
         }
 
         try {
             int inserted = kmicR060.executeCreateMicroloanMovements(movements);
-            LOGGER.info("Inserción completada. Total insertado: {}", inserted);
+            LOGGER.info("Inserción de movimientos completada. Total insertado: {}", inserted);
             return inserted;
         } catch (Exception e) {
-            LOGGER.error("Error al insertar movimientos microcrédito", e);
+            LOGGER.error("Error al insertar movimientos", e);
             return 0;
         }
     }
 
+    // Métodos heredados expuestos como públicos (si el contrato lo requiere)
+
+    @Override
+    public int executeUpdateMicrocreditContract(Map<String, Object> args) {
+        return updateWithResult(Constants.UPDATE_MICROCREDIT_CONTRACT, args);
+    }
+
+    @Override
+    public int executeUpdateDisposition(Map<String, Object> args) {
+        return updateWithResult(Constants.UPDATE_MCRCR_DISPOSITION, args);
+    }
+
+    @Override
+    public int executeUpdateAmortizationContition(Map<String, Object> args) {
+        return updateWithResult(Constants.UPDATE_AMORTIZATION_CONDITION, args);
+    }
+
+    @Override
+    public int executeUpdateDspnAmort(Map<String, Object> args) {
+        return updateWithResult(Constants.UPDATE_MCRCR_AMORTIZATION, args);
+    }
+
+    private int updateWithResult(String queryKey, Map<String, Object> args) {
+        try {
+            return jdbcUtils.update(queryKey, args);
+        } catch (DBException e) {
+            LOGGER.info("Error ejecutando update [{}] para contrato: {}", queryKey, args.get("contractId"));
+            return 0;
+        }
+    }
 }
+

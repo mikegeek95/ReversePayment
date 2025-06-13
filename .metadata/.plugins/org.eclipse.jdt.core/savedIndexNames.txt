@@ -195,6 +195,7 @@ INDEX VERSION 1.132+C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\
 3526674594.index
 2442069388.index
 3064120400.index
+2541546352.index
 3690161139.index
 76804562.index
 2907288423.index
