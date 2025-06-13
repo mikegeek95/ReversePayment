@@ -93,9 +93,9 @@ public class Diccionario {
             case DISPOCOM:    return ANULDCOM;
             case DISPOIVA:    return ANULDIVA;
             case PAGMENCN:    return ANPGMNCN;
-            case PAGMENCA:    return ANPGMNCA;
-            case PGMNCMDI:    return ANPGMNCD;
-            case PGMNIVAC:    return ANPGMNIC;
+            case PAGMENCA:    return ANULDCOM;
+            case PGMNCMDI:    return ANULDISP;
+            case PGMNIVAC:    return ANULDIVA;
             case PGANTCON:    return ANPGANTC;
             case PGANTDIS:    return ANPGANTD;
             case PGANTCAP:    return ANPGATCP;

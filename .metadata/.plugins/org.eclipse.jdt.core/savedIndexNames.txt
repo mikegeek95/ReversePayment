@@ -130,8 +130,8 @@ INDEX VERSION 1.132+C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\
 1664376815.index
 3302697908.index
 755253406.index
-2144983946.index
 3701804704.index
+2144983946.index
 3753312643.index
 2719041525.index
 2122576794.index
@@ -195,7 +195,6 @@ INDEX VERSION 1.132+C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\
 3526674594.index
 2442069388.index
 3064120400.index
-2541546352.index
 3690161139.index
 76804562.index
 2907288423.index
@@ -225,8 +224,8 @@ INDEX VERSION 1.132+C:\Users\Inetum\Documents\ejercicio batch\DU_BATCH (PRUEBA)\
 1151047203.index
 2312200327.index
 591680548.index
-4237064187.index
 3266892185.index
+4237064187.index
 876684506.index
 3568141353.index
 832960421.index

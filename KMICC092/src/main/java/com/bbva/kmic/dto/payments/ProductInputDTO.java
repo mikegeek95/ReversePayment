@@ -55,21 +55,14 @@ public class ProductInputDTO implements Serializable{
 	private String microloanId;           // GF_OPERATION_PAGE_ID
 	private Date installmentDate;         // GF_INSTALLMENT_PERIOD_DATE
 	private double amount;            // GF_MOVEMENT_AMOUNT
-	private String tipoMovimiento;  
-
-    public String getTipoMovimiento() {
-		return tipoMovimiento;
-	}
+	 
 
 
-	public void setTipoMovimiento(String tipoMovimiento) {
-		this.tipoMovimiento = tipoMovimiento;
-	}
 
 
 	@Override
     public String toString() {
-        return "DTO[contractId=" + contractId + ", microloanId=" + microloanId + ", installmentDate=" + installmentDate + ", amount=" + amount + ", tipoMovimiento=" + tipoMovimiento + "]";
+        return "DTO[contractId=" + contractId + ", microloanId=" + microloanId +  "]";
     }
 	
 

@@ -31,7 +31,7 @@
 	  <property name="lineTokenizer">
 	    <bean class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
 	      <property name="delimiter" value="|"/>
-	      <property name="names" value="contractId,microloanId,installmentDate,amount,tipoMovimiento"/>
+	      <property name="names" value="contractId,microloanId,installmentDate,amount"/>
 	      <property name="strict" value="false"/>
 	    </bean>
 	  </property>

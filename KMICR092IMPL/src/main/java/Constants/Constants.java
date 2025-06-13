@@ -10,17 +10,8 @@ public final class Constants {
     public static final String MICRO_CREDIT_CONTRACT = "update.microcredit.contract";
     public static final String AMORTIZATION_CONDITION = "update.amortization.condition";
     public static final String MCECR_AMORTIZATION = "update.mcecr.amortization";
+    public static final String select_list_moviemintos="select.list.moviemintos";
 
-    // Métodos de acceso si deseas mayor legibilidad en el código
-    public static String getMicrocreditContractUpdate() {
-        return MICRO_CREDIT_CONTRACT;
-    }
 
-    public static String getAmortizationConditionUpdate() {
-        return AMORTIZATION_CONDITION;
-    }
-
-    public static String getMcecrAmortizationUpdate() {
-        return MCECR_AMORTIZATION;
-    }
+  
 }

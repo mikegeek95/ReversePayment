@@ -16,8 +16,8 @@ public class KMICProductMapperTest {
 
     @Test
     public void testMapFieldSet_success() throws Exception {
-        String[] names = {"contractId", "microloanId", "installmentDate", "amount", "tipoMovimiento"};
-        String[] values = {"MX007400219200001818", "202408200324351553", "01/07/2024", "1216.33", "PGAUTCON"};
+        String[] names = {"contractId", "microloanId", "installmentDate", "amount"};
+        String[] values = {"MX007400219200001818", "202408200324351553", "01/07/2024", "1216.33"};
 
         FieldSet fieldSet = new DefaultFieldSet(values, names);
 
@@ -32,6 +32,6 @@ public class KMICProductMapperTest {
         assertEquals(expectedDate, dto.getInstallmentDate());
         
         assertEquals(1216.33, dto.getAmount(), 0.001);
-        assertEquals("PGAUTCON", dto.getTipoMovimiento());
+        
     }
 }

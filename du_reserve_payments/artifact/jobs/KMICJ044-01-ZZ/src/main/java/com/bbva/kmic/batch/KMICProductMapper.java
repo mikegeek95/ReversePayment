@@ -19,7 +19,7 @@ public class KMICProductMapper implements FieldSetMapper<ProductInputDTO> {
         dto.setMicroloanId(fieldSet.readString("microloanId"));
         dto.setInstallmentDate(fieldSet.readDate("installmentDate", "dd/MM/yyyy"));
         dto.setAmount(fieldSet.readDouble("amount"));
-        dto.setTipoMovimiento(fieldSet.readString("tipoMovimiento"));
+        
 
         return dto;
     }
