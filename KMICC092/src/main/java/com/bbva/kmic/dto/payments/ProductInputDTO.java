@@ -43,6 +43,7 @@ public class ProductInputDTO implements Serializable{
 
 
 	public double getAmount() {
+		///pago completo
 		return amount;
 	}
 
@@ -55,8 +56,40 @@ public class ProductInputDTO implements Serializable{
 	private String microloanId;           // GF_OPERATION_PAGE_ID
 	private Date installmentDate;         // GF_INSTALLMENT_PERIOD_DATE
 	private double amount;            // GF_MOVEMENT_AMOUNT
-	 
+	private double amountCapital;            // GF_MOVEMENT_AMOUNT
+	
+	public double getAmountCapital() {
+		return amountCapital;
+	}
 
+
+	public void setAmountCapital(double amountCapital) {
+		this.amountCapital = amountCapital;
+	}
+
+
+	private double amountComision;            // GF_MOVEMENT_AMOUNT
+	public double getAmountComision() {
+		return amountComision;
+	}
+
+
+	public void setAmountComision(double amountComision) {
+		this.amountComision = amountComision;
+	}
+
+	
+	private double amountIva;            // GF_MOVEMENT_AMOUNT
+	public double getAmountIva() {
+		return amountIva;
+	}
+
+
+	public void setAmountIva(double amountIva) {
+		this.amountIva = amountIva;
+	}
+	 
+	
 
 
 

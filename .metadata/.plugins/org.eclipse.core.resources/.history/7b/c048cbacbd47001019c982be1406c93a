@@ -1,0 +1,23 @@
+update.microcredit.contract=db1; \
+UPDATE KMIC.t_kmic_microcredit_contract SET  \
+GF_CONTRACT_DATE = :date, \
+GF_GRANTED_AMOUNT = :amount, \
+G_MCRCR_CONTRACT_STATUS_TYPE = :eventCode \
+WHERE G_CONTRACT_ID = :contractId;
+
+
+update.amortization.condition=db1;\
+UPDATE KMIC.t_kmic_amortization_condition SET \
+GF_ITEM_SETTLEMENT_DATE = :date, \
+GF_APPLIED_ECON_COND_AMOUNT = :amount, \
+G_MCRCR_AMORT_STATUS_TYPE = :eventCode \
+WHERE G_CONTRACT_ID = :contractId AND GF_OPERATION_PAGE_ID = :microloanId
+
+
+update.mcecr.amortization=db1; \
+UPDATE KMIC.t_kmic_mcrcr_dspn_amort SET \
+GF_ITEM_SETTLEMENT_DATE = :date, \
+GF_CAP_AMORTIZ_INSTLMNT_AMOUNT = :amount, \
+G_MCRCR_AMORT_STATUS_TYPE = :eventCode \
+WHERE G_CONTRACT_ID = :contractId \
+AND GF_OPERATION_PAGE_ID = :microloanId;

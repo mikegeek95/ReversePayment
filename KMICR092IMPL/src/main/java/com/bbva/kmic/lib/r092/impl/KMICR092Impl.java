@@ -82,34 +82,43 @@ public class KMICR092Impl extends KMICR092Abstract {
 
  
 
-    private void applyReversalsAndInsert(List<MicroloanMovement> movements,ProductInputDTO dto) {
+private void applyReversalsAndInsert(List<MicroloanMovement> movements,ProductInputDTO dto) {
+    	
+
+        
         for (MicroloanMovement movement : movements) {
             String originalCode = movement.getAccount().getEvent().getCode();
-            
+
             switch (originalCode) {
             case Diccionario.PGMNCMDI:
             	movement.getAccount().getEvent().setCode(Diccionario.obtenerCodigoContrario(movement.getAccount().getEvent().getCode()));
+            	dto.setAmountCapital(movement.getAmount().getAmount());
+            	movement.setDate(getAccountingDateCurrentDate());
             	break; // Pago de capital → Anulación de capital
             case Diccionario.PGMNIVAC:
             	movement.getAccount().getEvent().setCode(Diccionario.obtenerCodigoContrario(movement.getAccount().getEvent().getCode()));
-            	break; // Comisión → Anulación de comisión
+            	dto.setAmountIva(movement.getAmount().getAmount());
+            	movement.setDate(getAccountingDateCurrentDate());
+            	break; // IVA → Anulación de IVA
+            
             case Diccionario.PAGMENCA:
             	movement.getAccount().getEvent().setCode(Diccionario.obtenerCodigoContrario(movement.getAccount().getEvent().getCode()));
-            	break; // IVA → Anulación de IVA
-            case Diccionario.PGAUTCON:
-            	movement.getAccount().getEvent().setCode(Diccionario.obtenerCodigoContrario(movement.getAccount().getEvent().getCode()));
-                break; // Pago automático → Anulación general
+            	dto.setAmountComision(movement.getAmount().getAmount());
+            	movement.setDate(getAccountingDateCurrentDate());
+            	break; // Comisión → Anulación de comisión
+            
             default:
                 //return "UNKNOWN"; // Tipo no reconocido
             	break;
+           }
+     
         }
-
-            
-            
-            executeUpdateMicrocreditContract(dto);
-            executeUpdateDisposition(dto);
-            executeUpdateAmortizationContition(dto);
-            executeUpdateDspnAmort(dto);
+        
+        if (dto.getAmount() == (dto.getAmountCapital()+dto.getAmountComision()+dto.getAmountIva())) {
+	        executeUpdateMicrocreditContract(dto); //PAGO TOTAL EN CREDITO
+	    	executeUpdateDisposition(dto); //PAGO TOTAL EN DISPO
+	    	executeUpdateAmortizationContition(dto); //PAGO TOTAL EN DISPO
+	    	executeUpdateDspnAmort(dto); //SE RESTA PAGO DE COMISION
         }
 
         insertMovementsBatch(movements);
