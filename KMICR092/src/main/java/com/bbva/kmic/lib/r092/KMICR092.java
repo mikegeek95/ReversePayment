@@ -15,10 +15,10 @@ public interface KMICR092 {
 	 * The execute method...
 	 */
 	void executeGetReversePayments( List<ProductInputDTO> items);
-	 int executeUpdateMicrocreditContract (Map<String, Object> args);
-	 int executeUpdateAmortizationContition (Map<String, Object> args);
-	 int executeUpdateDspnAmort (Map<String, Object> args);
-	List<MicroloanMovement> getMovementList(Map<String, Object> params);
-	int executeUpdateDisposition(Map<String, Object> args);
+	 int executeUpdateMicrocreditContract (ProductInputDTO args);
+	 int executeUpdateAmortizationContition (ProductInputDTO args);
+	 int executeUpdateDspnAmort (ProductInputDTO args);
+	List<MicroloanMovement> getMovementList(ProductInputDTO params);
+	int executeUpdateDisposition(ProductInputDTO args);
 
 }

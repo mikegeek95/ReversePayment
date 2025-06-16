@@ -34,16 +34,17 @@ public class KMICR092Impl extends KMICR092Abstract {
 
             LOGGER.info("Movimiento encontrado: {}", resultMovement);
 
-            Map<String, Object> params = Mapper.buildQueryParams(inputMovement);
-            List<MicroloanMovement> movementList = retrieveMovements(params);
+            Map<String, Object> params = Mapper.buildParamsLogMovement(dto);
+            List<MicroloanMovement> movementList = getMovementList(dto);
+            
 
             if (movementList.isEmpty()) {
                 LOGGER.warn("No hay movimientos para procesar para contrato: {}", params.get("contractId"));
                 continue;
             }
 
-            applyUpdatesToContract(params);
-            applyReversalsAndInsert(movementList);
+            
+            applyReversalsAndInsert(movementList,dto);
         }
     }
 
@@ -64,13 +65,9 @@ public class KMICR092Impl extends KMICR092Abstract {
     }
 
     @Override
-    public List<MicroloanMovement> getMovementList(Map<String, Object> params) {
-        return retrieveMovements(params);
-    }
-
-    private List<MicroloanMovement> retrieveMovements(Map<String, Object> params) {
-        List<MicroloanMovement> movements = new ArrayList<>();
-
+    public List<MicroloanMovement> getMovementList(ProductInputDTO args) {
+    	List<MicroloanMovement> movements = new ArrayList<>();
+    	Map<String, Object> params=Mapper.buildParamsLogMovement(args);
         try {
             LOGGER.info("Consultando movimientos con parámetros: {}", params);
             List<Map<String, Object>> rows = jdbcUtils.queryForList(Constants.SELECT_TRAE_DATOS_LOG, params);
@@ -83,37 +80,39 @@ public class KMICR092Impl extends KMICR092Abstract {
         return movements;
     }
 
-    private void applyUpdatesToContract(Map<String, Object> params) {
-        updateWithQuery(Constants.UPDATE_MICROCREDIT_CONTRACT, params);
-        updateWithQuery(Constants.UPDATE_MCRCR_DISPOSITION, params);
-        updateWithQuery(Constants.UPDATE_AMORTIZATION_CONDITION, params);
-        updateWithQuery(Constants.UPDATE_MCRCR_AMORTIZATION, params);
-    }
+ 
 
-    private void applyReversalsAndInsert(List<MicroloanMovement> movements) {
+    private void applyReversalsAndInsert(List<MicroloanMovement> movements,ProductInputDTO dto) {
         for (MicroloanMovement movement : movements) {
             String originalCode = movement.getAccount().getEvent().getCode();
-            String reverseCode = Diccionario.obtenerCodigoContrario(originalCode);
+            
+            switch (originalCode) {
+            case Diccionario.PGMNCMDI:
+            	movement.getAccount().getEvent().setCode(Diccionario.obtenerCodigoContrario(movement.getAccount().getEvent().getCode()));
+            	break; // Pago de capital → Anulación de capital
+            case Diccionario.PGMNIVAC:
+            	movement.getAccount().getEvent().setCode(Diccionario.obtenerCodigoContrario(movement.getAccount().getEvent().getCode()));
+            	break; // Comisión → Anulación de comisión
+            case Diccionario.PAGMENCA:
+            	movement.getAccount().getEvent().setCode(Diccionario.obtenerCodigoContrario(movement.getAccount().getEvent().getCode()));
+            	break; // IVA → Anulación de IVA
+            case Diccionario.PGAUTCON:
+            	movement.getAccount().getEvent().setCode(Diccionario.obtenerCodigoContrario(movement.getAccount().getEvent().getCode()));
+                break; // Pago automático → Anulación general
+            default:
+                //return "UNKNOWN"; // Tipo no reconocido
+            	break;
+        }
 
-            if (reverseCode != null && !reverseCode.isEmpty()) {
-                movement.getAccount().getEvent().setCode(reverseCode);
-                LOGGER.info("Código de reverso aplicado: {} → {}", originalCode, reverseCode);
-            } else {
-                LOGGER.warn("No se encontró código de reverso para: {}", originalCode);
-            }
+            
+            
+            executeUpdateMicrocreditContract(dto);
+            executeUpdateDisposition(dto);
+            executeUpdateAmortizationContition(dto);
+            executeUpdateDspnAmort(dto);
         }
 
         insertMovementsBatch(movements);
-    }
-
-    private void updateWithQuery(String queryKey, Map<String, Object> args) {
-        LOGGER.info("Actualizando con query [{}] para contrato: {}", queryKey, args.get("contractId"));
-        try {
-            jdbcUtils.update(queryKey, args);
-            LOGGER.info("Actualización exitosa para contrato: {}", args.get("contractId"));
-        } catch (DBException e) {
-        	LOGGER.info("Error en actualización con query [{}]: {}", queryKey, args.get("contractId"));
-        }
     }
 
     public int insertMovementsBatch(List<MicroloanMovement> movements) {
@@ -135,25 +134,30 @@ public class KMICR092Impl extends KMICR092Abstract {
     // Métodos heredados expuestos como públicos (si el contrato lo requiere)
 
     @Override
-    public int executeUpdateMicrocreditContract(Map<String, Object> args) {
-        return updateWithResult(Constants.UPDATE_MICROCREDIT_CONTRACT, args);
+    public int executeUpdateMicrocreditContract(ProductInputDTO args) {
+    	Map<String, Object> argsu=Mapper.buildParamsUpdateMicrocreditContract(args);
+        return updateWithResult(Constants.UPDATE_MICROCREDIT_CONTRACT, argsu);
     }
 
     @Override
-    public int executeUpdateDisposition(Map<String, Object> args) {
-        return updateWithResult(Constants.UPDATE_MCRCR_DISPOSITION, args);
+    public int executeUpdateDisposition(ProductInputDTO args) {
+    	Map<String, Object> argsu=Mapper.buildParamsUpdateDisposition(args);
+        return updateWithResult(Constants.UPDATE_MCRCR_DISPOSITION, argsu);
     }
 
     @Override
-    public int executeUpdateAmortizationContition(Map<String, Object> args) {
-        return updateWithResult(Constants.UPDATE_AMORTIZATION_CONDITION, args);
+    public int executeUpdateAmortizationContition(ProductInputDTO args) {
+    	Map<String, Object> argsu=Mapper.buildParamsUpdateAmortization(args);
+        return updateWithResult(Constants.UPDATE_AMORTIZATION_CONDITION, argsu);
     }
 
     @Override
-    public int executeUpdateDspnAmort(Map<String, Object> args) {
-        return updateWithResult(Constants.UPDATE_MCRCR_AMORTIZATION, args);
+    public int executeUpdateDspnAmort(ProductInputDTO args) {
+    	Map<String, Object> argsu=Mapper.buildParamsUpdateAmortizationCondition(args);
+        return updateWithResult(Constants.UPDATE_MCRCR_AMORTIZATION, argsu);
     }
-
+    
+    
     private int updateWithResult(String queryKey, Map<String, Object> args) {
         try {
             return jdbcUtils.update(queryKey, args);
