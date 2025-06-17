@@ -81,72 +81,48 @@ public class KMICR092Impl extends KMICR092Abstract {
     }
 
  
-    private void applyReversalsAndInsert(List<MicroloanMovement> movements, ProductInputDTO dto) {
-        LOGGER.info("Iniciando proceso de reverso para contrato: {}", dto.getContractId());
 
+private void applyReversalsAndInsert(List<MicroloanMovement> movements,ProductInputDTO dto) {
+    	
+
+        
         for (MicroloanMovement movement : movements) {
-            processSingleReversal(movement, dto);
+            String originalCode = movement.getAccount().getEvent().getCode();
+
+            switch (originalCode) {
+            case Diccionario.PGMNCMDI:
+            	movement.getAccount().getEvent().setCode(Diccionario.obtenerCodigoContrario(movement.getAccount().getEvent().getCode()));
+            	dto.setAmountCapital(movement.getAmount().getAmount());
+            	movement.setDate(getAccountingDateCurrentDate());
+            	break; // Pago de capital → Anulación de capital
+            case Diccionario.PGMNIVAC:
+            	movement.getAccount().getEvent().setCode(Diccionario.obtenerCodigoContrario(movement.getAccount().getEvent().getCode()));
+            	dto.setAmountIva(movement.getAmount().getAmount());
+            	movement.setDate(getAccountingDateCurrentDate());
+            	break; // IVA → Anulación de IVA
+            
+            case Diccionario.PAGMENCA:
+            	movement.getAccount().getEvent().setCode(Diccionario.obtenerCodigoContrario(movement.getAccount().getEvent().getCode()));
+            	dto.setAmountComision(movement.getAmount().getAmount());
+            	movement.setDate(getAccountingDateCurrentDate());
+            	break; // Comisión → Anulación de comisión
+            
+            default:
+                //return "UNKNOWN"; // Tipo no reconocido
+            	break;
+           }
+     
         }
-
-        double totalAmountComponents = dto.getAmountCapital() + dto.getAmountComision() + dto.getAmountIva();
-
-        if (Double.compare(dto.getAmount(), totalAmountComponents) == 0) {
-            LOGGER.info("El monto total coincide. Ejecutando actualizaciones.");
-            executeAllUpdates(dto);
-        } else {
-            LOGGER.warn("Monto inconsistente. Monto original: {}, suma componentes: {}", dto.getAmount(), totalAmountComponents);
+        
+        if (dto.getAmount() == (dto.getAmountCapital()+dto.getAmountComision()+dto.getAmountIva())) {
+	        executeUpdateMicrocreditContract(dto); //PAGO TOTAL EN CREDITO
+	    	executeUpdateDisposition(dto); //PAGO TOTAL EN DISPO
+	    	executeUpdateAmortizationContition(dto); //PAGO TOTAL EN DISPO
+	    	executeUpdateDspnAmort(dto); //SE RESTA PAGO DE COMISION
         }
 
         insertMovementsBatch(movements);
     }
-
-    
-    private void processSingleReversal(MicroloanMovement movement, ProductInputDTO dto) {
-        String originalCode = movement.getAccount().getEvent().getCode();
-        String reversedCode = Diccionario.obtenerCodigoContrario(originalCode);
-
-        if (reversedCode == null) {
-            LOGGER.warn("No se encontró reverso para el código: {}", originalCode);
-            return;
-        }
-
-        movement.getAccount().getEvent().setCode(reversedCode);
-        movement.setDate(getAccountingDateCurrentDate());
-
-        double amount = movement.getAmount().getAmount();
-
-        switch (originalCode) {
-            case Diccionario.PGMNCMDI: // Capital
-                dto.setAmountCapital(amount);
-                LOGGER.info("Reverso de CAPITAL aplicado: {}", amount);
-                break;
-            case Diccionario.PGMNIVAC: // IVA
-                dto.setAmountIva(amount);
-                LOGGER.info("Reverso de IVA aplicado: {}", amount);
-                break;
-            case Diccionario.PAGMENCA: // Comisión
-                dto.setAmountComision(amount);
-                LOGGER.info("Reverso de COMISIÓN aplicado: {}", amount);
-                break;
-            default:
-                LOGGER.warn("Tipo de movimiento no reconocido para reverso: {}", originalCode);
-        }
-    }
-
-    
-    private void executeAllUpdates(ProductInputDTO dto) {
-        try {
-            executeUpdateMicrocreditContract(dto);
-            executeUpdateDisposition(dto);
-            executeUpdateAmortizationContition(dto);
-            executeUpdateDspnAmort(dto);
-            LOGGER.info("Actualizaciones completadas correctamente para el contrato: {}", dto.getContractId());
-        } catch (Exception e) {
-            LOGGER.error("Error en la ejecución de actualizaciones para el contrato: {}", dto.getContractId(), e);
-        }
-    }
-
-
 
     public int insertMovementsBatch(List<MicroloanMovement> movements) {
         if (movements == null || movements.isEmpty()) {

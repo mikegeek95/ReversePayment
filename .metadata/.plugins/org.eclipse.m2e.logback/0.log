@@ -8858,3 +8858,23 @@ org.eclipse.core.runtime.CoreException: Could not resolve artifact com.bbva.kmic
 2025-06-16 21:33:34,020 [Worker-244: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
 2025-06-16 21:33:34,024 [Worker-244: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
 2025-06-16 21:33:34,025 [Worker-244: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-16 21:37:44,015 [Worker-245: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-16 21:37:44,017 [Worker-245: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-16 21:37:44,018 [Worker-245: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-16 21:37:44,021 [Worker-245: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-16 21:37:44,022 [Worker-245: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-16 21:37:52,910 [Worker-247: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-16 21:37:52,913 [Worker-247: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-16 21:37:52,915 [Worker-247: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-16 21:37:52,919 [Worker-247: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-16 21:37:52,919 [Worker-247: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-16 21:38:31,680 [Worker-247: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-16 21:38:31,688 [Worker-247: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-16 21:38:31,689 [Worker-247: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-16 21:38:31,694 [Worker-247: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-16 21:38:31,696 [Worker-247: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-16 21:39:28,411 [Worker-244: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-16 21:39:28,412 [Worker-244: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-16 21:39:28,413 [Worker-244: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource
+2025-06-16 21:39:28,416 [Worker-244: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2025-06-16 21:39:28,417 [Worker-244: Building] INFO  o.e.m.c.i.embedder.EclipseLogger - Copying 0 resource

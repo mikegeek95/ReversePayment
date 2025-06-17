@@ -81,27 +81,8 @@ public class KMICR092Impl extends KMICR092Abstract {
     }
 
  
-    private void applyReversalsAndInsert(List<MicroloanMovement> movements, ProductInputDTO dto) {
-        LOGGER.info("Iniciando proceso de reverso para contrato: {}", dto.getContractId());
 
-        for (MicroloanMovement movement : movements) {
-            processSingleReversal(movement, dto);
-        }
-
-        double totalAmountComponents = dto.getAmountCapital() + dto.getAmountComision() + dto.getAmountIva();
-
-        if (Double.compare(dto.getAmount(), totalAmountComponents) == 0) {
-            LOGGER.info("El monto total coincide. Ejecutando actualizaciones.");
-            executeAllUpdates(dto);
-        } else {
-            LOGGER.warn("Monto inconsistente. Monto original: {}, suma componentes: {}", dto.getAmount(), totalAmountComponents);
-        }
-
-        insertMovementsBatch(movements);
-    }
-
-    
-    private void processSingleReversal(MicroloanMovement movement, ProductInputDTO dto) {
+    private void applyReversalsAndInsert(MicroloanMovement movement, ProductInputDTO dto) {
         String originalCode = movement.getAccount().getEvent().getCode();
         String reversedCode = Diccionario.obtenerCodigoContrario(originalCode);
 
@@ -132,7 +113,6 @@ public class KMICR092Impl extends KMICR092Abstract {
                 LOGGER.warn("Tipo de movimiento no reconocido para reverso: {}", originalCode);
         }
     }
-
     
     private void executeAllUpdates(ProductInputDTO dto) {
         try {
