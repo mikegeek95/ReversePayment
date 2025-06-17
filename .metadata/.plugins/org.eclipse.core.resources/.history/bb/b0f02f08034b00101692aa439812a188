@@ -1,0 +1,196 @@
+package com.bbva.kmic.lib.r092.impl;
+
+import com.bbva.apx.exception.db.DBException;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+import com.bbva.kmic.dto.payments.ProductInputDTO;
+import com.bbva.kmic.lib.r092.KMICR092;
+import Constants.Constants;
+import Constants.Diccionario;
+import Utils.Mapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+public class KMICR092Impl extends KMICR092Abstract {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(KMICR092Impl.class);
+
+    @Override
+    public void executeGetReversePayments(List<ProductInputDTO> items) {
+        for (ProductInputDTO dto : items) {
+            processPaymentReversal(dto);
+        }
+    }
+
+    private void processPaymentReversal(ProductInputDTO dto) {
+        LOGGER.info("[KMICR092] Iniciando reverso para DTO: {}", dto);
+
+        MicroloanMovement inputMovement = Mapper.mapToMicroloanMovement(dto);
+        MicroloanMovement resultMovement = fetchMicroloanMovement(inputMovement);
+
+        if (resultMovement == null) {
+            LOGGER.warn("Movimiento no encontrado para DTO: {}", dto);
+            return;
+        }
+
+        LOGGER.info("Movimiento encontrado: {}", resultMovement);
+
+        List<MicroloanMovement> movementList = getMovementList(dto);
+        if (movementList.isEmpty()) {
+            LOGGER.warn("No hay movimientos asociados al contrato: {}", dto.getContractId());
+            return;
+        }
+
+        applyReversalsAndInsert(movementList, dto);
+    }
+
+    private MicroloanMovement fetchMicroloanMovement(MicroloanMovement inputMovement) {
+        try {
+            LOGGER.info("Buscando movimiento con parámetros: {}", inputMovement);
+            MicroloanMovement result = kmicR060.executeGetMicroloanMovement(inputMovement);
+            if (result == null) {
+                LOGGER.warn("Movimiento no encontrado");
+            }
+            return result;
+        } catch (Exception e) {
+            LOGGER.error("Error al obtener movimiento de microcrédito", e);
+            return null;
+        }
+    }
+
+    @Override
+    public List<MicroloanMovement> getMovementList(ProductInputDTO dto) {
+        List<MicroloanMovement> movements = new ArrayList<>();
+        Map<String, Object> params = Mapper.buildParamsLogMovement(dto);
+        try {
+            LOGGER.info("Consultando movimientos con parámetros: {}", params);
+            List<Map<String, Object>> rows = jdbcUtils.queryForList(Constants.SELECT_TRAE_DATOS_LOG, params);
+            movements = Mapper.mapListMicroloanMovement(rows);
+            LOGGER.info("Movimientos recuperados: {}", movements.size());
+        } catch (Exception e) {
+            LOGGER.error("Error al obtener movimientos del contrato: {}", dto.getContractId(), e);
+        }
+        return movements;
+    }
+
+    private void applyReversalsAndInsert(List<MicroloanMovement> movements, ProductInputDTO dto) {
+        double totalCapital = 0.0;
+        double totalComision = 0.0;
+        double totalIva = 0.0;
+
+        for (MicroloanMovement movement : movements) {
+            String originalCode = movement.getAccount().getEvent().getCode();
+            String reversedCode = Diccionario.obtenerCodigoContrario(originalCode);
+
+            if (reversedCode == null) {
+                LOGGER.warn("Código sin reverso definido: {}", originalCode);
+                continue;
+            }
+
+            movement.getAccount().getEvent().setCode(reversedCode);
+            movement.setDate(getAccountingDateCurrentDate());
+
+            double amount = movement.getAmount().getAmount();
+            switch (originalCode) {
+                case Diccionario.PGMNCMDI:
+                    dto.setAmountCapital(amount);
+                    totalCapital += amount;
+                    break;
+                case Diccionario.PAGMENCA:
+                    dto.setAmountComision(amount);
+                    totalComision += amount;
+                    break;
+                case Diccionario.PGMNIVAC:
+                    dto.setAmountIva(amount);
+                    totalIva += amount;
+                    break;
+                default:
+                    LOGGER.warn("Movimiento sin manejo en switch: {}", originalCode);
+                    break;
+            }
+        }
+
+        double totalSuma = totalCapital + totalComision + totalIva;
+        if (Double.compare(dto.getAmount(), totalSuma) == 0) {
+            executeAllUpdates(dto);
+        } else {
+            LOGGER.warn("Suma de componentes ({}) no coincide con monto total ({})", totalSuma, dto.getAmount());
+        }
+
+        insertMovementsBatch(movements);
+    }
+
+    private void executeAllUpdates(ProductInputDTO dto) {
+        executeSafeUpdate(() -> executeUpdateMicrocreditContract(dto), "update_microcredit_contract");
+        executeSafeUpdate(() -> executeUpdateDisposition(dto), "update_disposition");
+        executeSafeUpdate(() -> executeUpdateAmortizationContition(dto), "update_amortization_condition");
+        executeSafeUpdate(() -> executeUpdateDspnAmort(dto), "update_dspn_amort");
+    }
+
+    private void executeSafeUpdate(UpdateAction action, String actionName) {
+        try {
+            int rows = action.execute();
+            LOGGER.info("Ejecución [{}] completa. Registros afectados: {}", actionName, rows);
+        } catch (Exception e) {
+            LOGGER.error("Error durante la ejecución de [{}]", actionName, e);
+        }
+    }
+
+    @FunctionalInterface
+    private interface UpdateAction {
+        int execute() throws Exception;
+    }
+
+    public int insertMovementsBatch(List<MicroloanMovement> movements) {
+        if (movements == null || movements.isEmpty()) {
+            LOGGER.warn("Lista vacía de movimientos. No se insertará nada.");
+            return 0;
+        }
+
+        try {
+            int inserted = kmicR060.executeCreateMicroloanMovements(movements);
+            LOGGER.info("Inserción de movimientos completada. Total insertado: {}", inserted);
+            return inserted;
+        } catch (Exception e) {
+            LOGGER.error("Error al insertar movimientos", e);
+            return 0;
+        }
+    }
+
+    // Métodos de actualización individuales
+
+    @Override
+    public int executeUpdateMicrocreditContract(ProductInputDTO dto) {
+        Map<String, Object> params = Mapper.buildParamsUpdateMicrocreditContract(dto);
+        return safeUpdate(Constants.UPDATE_MICROCREDIT_CONTRACT, params);
+    }
+
+    @Override
+    public int executeUpdateDisposition(ProductInputDTO dto) {
+        Map<String, Object> params = Mapper.buildParamsUpdateDisposition(dto);
+        return safeUpdate(Constants.UPDATE_MCRCR_DISPOSITION, params);
+    }
+
+    @Override
+    public int executeUpdateAmortizationContition(ProductInputDTO dto) {
+        Map<String, Object> params = Mapper.buildParamsUpdateAmortization(dto);
+        return safeUpdate(Constants.UPDATE_AMORTIZATION_CONDITION, params);
+    }
+
+    @Override
+    public int executeUpdateDspnAmort(ProductInputDTO dto) {
+        Map<String, Object> params = Mapper.buildParamsUpdateAmortizationCondition(dto);
+        return safeUpdate(Constants.UPDATE_MCRCR_AMORTIZATION, params);
+    }
+
+    private int safeUpdate(String query, Map<String, Object> params) {
+        try {
+            return jdbcUtils.update(query, params);
+        } catch (DBException e) {
+            LOGGER.error("Error ejecutando [{}] para contrato [{}]", query, params.get("contractId"), e);
+            return 0;
+        }
+    }
+}
+

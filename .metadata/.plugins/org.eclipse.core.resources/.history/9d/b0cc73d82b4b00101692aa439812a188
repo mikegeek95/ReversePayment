@@ -266,7 +266,7 @@ public class Mapper {
         params.put("itemSettlementDate", dto.getInstallmentDate());
         params.put("instlmntFeeRcovrAmount", dto.getAmountComision());
         params.put("recoveredTaxAmount", dto.getAmountIva());
-        params.put("mcrcrAmortStatusType", Constants.STATUS_PENDING);
+        params.put("mcrcrAmortStatusType", "string nuevo estatus");
         return params;
     }
     

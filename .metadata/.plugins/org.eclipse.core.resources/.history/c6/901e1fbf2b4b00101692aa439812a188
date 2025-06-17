@@ -13,8 +13,6 @@ import com.bbva.kmic.dto.commonmodel.*;
 import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
 import com.bbva.kmic.dto.payments.ProductInputDTO;
 
-import Constants.Constants;
-
 public class Mapper {
     private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})");
     private static final Logger LOGGER = LoggerFactory.getLogger(Mapper.class);
@@ -255,7 +253,7 @@ public class Mapper {
         params.put("itemSettlementDate", dto.getInstallmentDate());
         params.put("drwdnAmortTradeAmount", dto.getAmount());
         params.put("amortCapitalAmount", dto.getAmountCapital());
-        params.put("mcrcrAmortStatusType", Constants.STATUS_PENDING);
+        params.put("mcrcrAmortStatusType", Constants.Pending);
         return params;
     }
     
@@ -266,7 +264,7 @@ public class Mapper {
         params.put("itemSettlementDate", dto.getInstallmentDate());
         params.put("instlmntFeeRcovrAmount", dto.getAmountComision());
         params.put("recoveredTaxAmount", dto.getAmountIva());
-        params.put("mcrcrAmortStatusType", Constants.STATUS_PENDING);
+        params.put("mcrcrAmortStatusType", "string nuevo estatus");
         return params;
     }
     
