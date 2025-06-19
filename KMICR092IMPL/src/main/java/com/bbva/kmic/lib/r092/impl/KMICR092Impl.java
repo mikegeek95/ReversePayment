@@ -24,29 +24,36 @@ public class KMICR092Impl extends KMICR092Abstract {
         for (ProductInputDTO dto : items) {
             LOGGER.info("[KMICR092] DTO recibido: {}", dto);
 
-            MicroloanMovement inputMovement = Mapper.mapToMicroloanMovement(dto);
-            MicroloanMovement resultMovement = fetchMicroloanMovement(inputMovement);
-
-            if (resultMovement == null) {
-                LOGGER.warn("No se encontró movimiento para: {}", dto);
-                continue;
-            }
-
-            LOGGER.info("Movimiento encontrado: {}", resultMovement);
-
             Map<String, Object> params = Mapper.buildParamsLogMovement(dto);
-            List<MicroloanMovement> movementList = getMovementList(dto);
-            
+            List<MicroloanMovement> originalMovementList = getMovementList(dto);
 
-            if (movementList.isEmpty()) {
+            if (originalMovementList.isEmpty()) {
                 LOGGER.warn("No hay movimientos para procesar para contrato: {}", params.get("contractId"));
                 continue;
             }
 
-            
-            applyReversalsAndInsert(movementList,dto);
+            List<MicroloanMovement> validatedMovements = new ArrayList<>();
+
+            for (MicroloanMovement movement : originalMovementList) {
+                MicroloanMovement result = fetchMicroloanMovement(movement);
+
+                if (result != null) {
+                    validatedMovements.add(movement);
+                    LOGGER.info("Movimiento válido encontrado: {}", result);
+                } else {
+                    LOGGER.warn("Movimiento no válido (no encontrado): {}", movement);
+                }
+            }
+
+            if (validatedMovements.isEmpty()) {
+                LOGGER.warn("No se encontró ningún movimiento válido para: {}", dto.getContractId());
+                continue;
+            }
+
+            applyReversalsAndInsert(validatedMovements, dto);
         }
     }
+
 
     private MicroloanMovement fetchMicroloanMovement(MicroloanMovement inputMovement) {
         try {

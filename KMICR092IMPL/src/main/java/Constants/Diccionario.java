@@ -89,40 +89,54 @@ public class Diccionario {
 
     public static String obtenerCodigoContrario(String codigoMovimiento) {
         switch (codigoMovimiento) {
-            case DISPOSIC:    return ANULDISP;
-            case DISPOCOM:    return ANULDCOM;
-            case DISPOIVA:    return ANULDIVA;
-            case PAGMENCN:    return ANPGMNCN;
-            case PAGMENCA:    return ANULDCOM;
-            case PGMNCMDI:    return ANULDISP;
-            case PGMNIVAC:    return ANULDIVA;
-            case PGANTCON:    return ANPGANTC;
-            case PGANTDIS:    return ANPGANTD;
+            // Pago mensual
+            case PAGMENCA:    return ANPGMNCA;
+            case PGMNCMDI:    return ANPGMNCD;
+            case PGMNIVAC:    return ANPGMNIC;
+            case PGAUTCON:    return ANPGMNCN;
+
+            // Pago anticipado
             case PGANTCAP:    return ANPGATCP;
             case PGCOMDIS:    return ANPGATCD;
             case PIVACOMD:    return ANPGATIC;
+            case PGANTCON:    return ANPGANTC;
+
+            // Pago de gastos de cobranza
             case PGGASCOB:    return ANPGGSCB;
             case PGIVAGCB:    return ANPGIVGC;
-            case PGVENCON:    return ANPGVNCN;
+
+            // Pago vencido
             case PGVENCAP:    return ANPGVNCP;
             case PGVNCDIS:    return ANPGCMDI;
-            case PGVNIVAC:    return ANPGVNDI;
-            case ACTCARAU:    return DESCARAU;
-            case BLOQCONT:    return DSBLOQCN;
+            case PGVNIVAC:    return null; // No hay reverso en tu lista
+            case PGVENCON:    return ANPGVNCN;
+
+            // Reprocesamiento
             case PGRECCON:    return ANPRCCON;
             case PGRECDIS:    return ANPRCDIS;
-            case GCGTOCOB:    return ANPGGSCB; // efecto indirecto
-            case GCIVACOB:    return ANPGIVGC; // efecto indirecto
+
+            // Gastos adicionales
+            case GCGTOCOB:    return ANPGGSCB; // Efecto indirecto
+            case GCIVACOB:    return ANPGIVGC;
+
+            // Movimiento de activación/cancelación
+            case ACTCARAU:    return DESCARAU;
+            case BLOQCONT:    return DSBLOQCN;
+
+            // Transacciones de crédito/débito y televisión
             case CRETRAVGD:   return CRETRAVGH;
             case CRETRAEXD:   return CRETRAEXH;
             case CRECOMVGD:   return CRECOMVGH;
             case CRECOMEXD:   return CRECOMEXH;
             case CREIVAVGD:   return CREIVAVGH;
             case CREIVAEXD:   return CREIVAEXH;
+
             case TVVTRAVGD:   return TVVTRAVGH;
             case TVVCOMVGD:   return TVVCOMVGH;
             case TVVIVAVGD:   return TVVIVAVGH;
-            default:          return null; // o "" si se desea devolver cadena vacía
+
+            default:          return null; // Puedes lanzar excepción si quieres forzar consistencia
         }
     }
+
 }
