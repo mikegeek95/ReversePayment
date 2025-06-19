@@ -14,7 +14,7 @@ public abstract class KMICR092Abstract extends AbstractLibrary implements KMICR0
 	protected ApplicationConfigurationService applicationConfigurationService;
 
 	protected JdbcUtils jdbcUtils;
-	
+
 	protected KMICR060 kmicR060;
 
 
@@ -31,13 +31,12 @@ public abstract class KMICR092Abstract extends AbstractLibrary implements KMICR0
 	public void setJdbcUtils(JdbcUtils jdbcUtils) {
 		this.jdbcUtils = jdbcUtils;
 	}
-	
-	
+
+	/**
+	* @param kmicR060 the this.kmicR060 to set
+	*/
 	public void setKmicR060(KMICR060 kmicR060) {
-	    this.kmicR060 = kmicR060;
+		this.kmicR060 = kmicR060;
 	}
-	
-
-
 
 }

@@ -1,5 +1,0 @@
-package com.bbva.kmic.dto.payments;
-
-public class ReservePaymentDto {
-
-}

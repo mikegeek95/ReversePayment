@@ -94,9 +94,18 @@ public class ProductInputDTO implements Serializable{
 
 
 	@Override
-    public String toString() {
-        return "DTO[contractId=" + contractId + ", microloanId=" + microloanId +  "]";
-    }
+	public String toString() {
+	    return "ProductInputDTO{" +
+	            "contractId='" + contractId + '\'' +
+	            ", microloanId='" + microloanId + '\'' +
+	            ", installmentDate=" + installmentDate +
+	            ", amount=" + amount +
+	            ", amountCapital=" + amountCapital +
+	            ", amountComision=" + amountComision +
+	            ", amountIva=" + amountIva +
+	            '}';
+	}
+
 	
 
 }

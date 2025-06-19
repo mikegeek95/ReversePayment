@@ -11,7 +11,7 @@
 	<version>0.0.0</version>
 	<packaging>pom</packaging>
 	<name>du_reserve_payments</name>
-	<description>unidad de prueba </description>
+	<description>REVERSO DE PAGOS DE MICROCREDITOS</description>
 	<properties>
 		<apx.core.batch.version>7.13.1</apx.core.batch.version>
 		<outputDirectoryDTOs>../../../target/dtos</outputDirectoryDTOs>

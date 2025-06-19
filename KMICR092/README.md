@@ -1,3 +1,3 @@
 # KMICR092
 
-libreria reverso
+LOGICA DE NEGOCIO DE REVERSO

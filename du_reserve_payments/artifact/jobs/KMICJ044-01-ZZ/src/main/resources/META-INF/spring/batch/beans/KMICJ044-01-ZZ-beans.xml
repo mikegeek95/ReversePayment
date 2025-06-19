@@ -40,10 +40,9 @@
 	  </property>
 	</bean>
 
-
 	  <!-- Writer -->
 	<bean id="itemWriter" class="com.bbva.kmic.batch.KMICProductWriter" scope="step">
-	    <property name="kmicR092" ref="kmicR092"/>
+	    <property name="kmicR092" ref="kmicR092"/> 
 	</bean>
 
   <!-- Path utils + delete file tasklet -->
@@ -55,3 +54,4 @@
   </bean>
 
 </beans>
+

@@ -1,3 +1,3 @@
 # KMICC092
 
-DTO payment
+dto de pagos de reverso

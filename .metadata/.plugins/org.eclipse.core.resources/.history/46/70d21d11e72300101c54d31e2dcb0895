@@ -1,7 +1,0 @@
-package com.bbva.kmic.batch;
-
-
-@ExtendWith(MockitoExtension.class)
-public class DeleteInputFileTest {
-
-}

@@ -1,5 +1,6 @@
 package com.bbva.kmic.batch;
 
+
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,16 +8,17 @@ import org.springframework.batch.item.ItemWriter;
 import com.bbva.kmic.dto.payments.ProductInputDTO;
 import com.bbva.kmic.lib.r092.KMICR092;
 
+
 public class KMICProductWriter implements ItemWriter<ProductInputDTO> {
 
     private static final Logger LOG = LoggerFactory.getLogger(KMICProductWriter.class);
-    
+
     private KMICR092 kmicR092;
 
     public void setKmicR092(KMICR092 kmicR092) {
         this.kmicR092 = kmicR092;
     }
-    
+   
     @Override
     public void write(List<? extends ProductInputDTO> items) throws Exception {
     	LOG.info("[KMICJ044-01-ZZ] Se procesarán {} registros", items.size());
@@ -29,5 +31,3 @@ public class KMICProductWriter implements ItemWriter<ProductInputDTO> {
 		kmicR092.executeGetReversePayments(castedItems);
     }
 }
-
-

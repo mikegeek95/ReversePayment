@@ -14,6 +14,7 @@ import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
 import com.bbva.kmic.dto.payments.ProductInputDTO;
 
 import Constants.Constants;
+import Constants.Diccionario;
 
 public class Mapper {
     private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})");
@@ -199,6 +200,13 @@ public class Mapper {
         Amount amount = new Amount();
         amount.setAmount(dto.getAmount());
         movement.setAmount(amount);
+        
+     // Set eventCode (anidado)
+        Account account = new Account();
+        AccountEvent event = new AccountEvent();
+        event.setCode(Diccionario.PGAUTCON); 
+        account.setEvent(event);
+        movement.setAccount(account);
 
         return movement;
     }

@@ -11,7 +11,7 @@
 	<artifactId>KMICC092</artifactId>
 	<version>0.0.0</version>
 	<packaging>bundle</packaging>
-	<description>DTO payment</description>
+	<description>dto de pagos de reverso</description>
 	<properties>
 		<osgi.version.manifest>0.0</osgi.version.manifest>
 	</properties>

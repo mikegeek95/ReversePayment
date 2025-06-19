@@ -1,3 +1,3 @@
 # du_reserve_payments
 
-unidad de prueba 
+REVERSO DE PAGOS DE MICROCREDITOS

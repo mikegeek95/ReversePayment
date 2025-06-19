@@ -1,7 +1,0 @@
-package com.bbva.kmic.dto.payments;
-
-import java.io.Serializable;
-
-public class ReservePaymentDto implements Serializable{
-
-}

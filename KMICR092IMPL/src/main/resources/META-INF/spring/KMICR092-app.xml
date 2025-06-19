@@ -4,6 +4,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi.xsd">
 	<bean id="kmicR092" class="com.bbva.kmic.lib.r092.impl.KMICR092Impl" parent="kmicR092Abstract">
-	<property name="kmicR060" ref="kmicR060"/>
-	</bean>
+    <property name="kmicR060" ref="kmicR060"/>
+</bean>
 </beans>

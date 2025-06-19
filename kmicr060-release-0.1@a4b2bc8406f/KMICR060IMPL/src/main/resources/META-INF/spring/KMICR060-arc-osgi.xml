@@ -4,5 +4,5 @@
 	<osgi:service id="kmicR060Osgi" ref="kmicR060" interface="com.bbva.kmic.lib.r060.KMICR060"/>
 	<osgi:reference id="applicationConfigurationServiceFactory" bean-name="applicationConfigurationServiceFactory" interface="com.bbva.elara.configuration.manager.application.factory.ApplicationConfigurationServiceFactory"/>
 	<osgi:reference id="jdbcUtilsFactory" bean-name="jdbcUtilsFactory" interface="com.bbva.elara.utility.jdbc.connector.factory.JdbcUtilsFactory"/>
-	<osgi:reference id="kmicR060" interface="com.bbva.kmic.lib.r060.KMICR060"/>
+	
 </beans>

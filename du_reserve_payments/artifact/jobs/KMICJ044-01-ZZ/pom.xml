@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project
+		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+		xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.bbva.kmic</groupId>
@@ -10,7 +12,7 @@
 	<artifactId>KMICJ044-01-ZZ</artifactId>
 	<version>0.0.0</version>
 	<packaging>bundle</packaging>
-	<description>reserve payments</description>
+	<description>reverso depago</description>
 	<properties>
 		<osgi.version>0.0</osgi.version>
 	</properties>
@@ -135,21 +137,21 @@
 			<scope>test</scope>
 		</dependency>
 		<!-- End test dependencies -->
-		<!-- Dependencias para el servicio de configuracion -->
-		<dependency>
-			<groupId>com.bbva.elara</groupId>
-			<artifactId>elara-batch-configuration-manager-application</artifactId>
-			<version>${apx.core.batch.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>com.bbva.kmic.dto.payments</groupId>
 			<artifactId>KMICC092</artifactId>
 			<version>0.0.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.bbva.kmic</groupId>
-			<artifactId>KMICR092</artifactId>
-			<version>0.0.0</version>
+            <groupId>com.bbva.kmic</groupId>
+            <artifactId>KMICR092</artifactId>
+            <version>0.0.0</version>
+        </dependency>
+		<!-- Dependencias para el servicio de configuracion -->
+		<dependency>
+			<groupId>com.bbva.elara</groupId>
+			<artifactId>elara-batch-configuration-manager-application</artifactId>
+			<version>${apx.core.batch.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
