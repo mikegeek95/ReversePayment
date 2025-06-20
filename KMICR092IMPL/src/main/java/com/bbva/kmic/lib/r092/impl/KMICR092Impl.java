@@ -4,8 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
+import java.text.SimpleDateFormat;
 
 import com.bbva.kmic.dto.payments.ProductInputDTO;
 import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
@@ -18,6 +21,8 @@ import Utils.Mapper;
 public class KMICR092Impl extends KMICR092Abstract {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KMICR092Impl.class);
+    
+    static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
 
     @Override
     public void executeGetReversePayments(List<ProductInputDTO> items) {
@@ -118,7 +123,7 @@ public class KMICR092Impl extends KMICR092Abstract {
         }
 
         movement.getAccount().getEvent().setCode(reversedCode);
-        movement.setDate(getAccountingDateCurrentDate());
+        movement.setDate(new Date());
 
         double amount = movement.getAmount().getAmount();
 
@@ -187,20 +192,22 @@ public class KMICR092Impl extends KMICR092Abstract {
 
     @Override
     public int executeUpdateAmortizationContition(ProductInputDTO args) {
-    	Map<String, Object> argsu=Mapper.buildParamsUpdateAmortization(args);
+    	Map<String, Object> argsu=Mapper.buildParamsUpdateAmortizationCondition(args);
         return updateWithResult(Constants.UPDATE_AMORTIZATION_CONDITION, argsu);
     }
 
     @Override
     public int executeUpdateDspnAmort(ProductInputDTO args) {
-    	Map<String, Object> argsu=Mapper.buildParamsUpdateAmortizationCondition(args);
+    	Map<String, Object> argsu=Mapper.buildParamsUpdateAmortization(args);
         return updateWithResult(Constants.UPDATE_MCRCR_AMORTIZATION, argsu);
     }
     
     
     private int updateWithResult(String queryKey, Map<String, Object> args) {
         try {
+        	LOGGER.info("Ejecutando update [{}] con parametros contrato: {}", queryKey, args);
             return jdbcUtils.update(queryKey, args);
+            
         } catch (DBException e) {
             LOGGER.info("Error ejecutando update [{}] para contrato: {}", queryKey, args.get("contractId"));
             return 0;

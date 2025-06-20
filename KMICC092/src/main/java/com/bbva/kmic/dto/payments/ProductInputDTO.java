@@ -2,6 +2,7 @@ package com.bbva.kmic.dto.payments;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.text.SimpleDateFormat;
 
 
 public class ProductInputDTO implements Serializable{
@@ -95,10 +96,13 @@ public class ProductInputDTO implements Serializable{
 
 	@Override
 	public String toString() {
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
+	    String formattedDate = installmentDate != null ? sdf.format(installmentDate) : "null";
+	    
 	    return "ProductInputDTO{" +
 	            "contractId='" + contractId + '\'' +
 	            ", microloanId='" + microloanId + '\'' +
-	            ", installmentDate=" + installmentDate +
+	            ", installmentDate=" + formattedDate  +
 	            ", amount=" + amount +
 	            ", amountCapital=" + amountCapital +
 	            ", amountComision=" + amountComision +

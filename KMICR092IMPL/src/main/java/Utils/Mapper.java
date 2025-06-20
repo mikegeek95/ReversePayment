@@ -1,10 +1,10 @@
 package Utils;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.text.SimpleDateFormat;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +19,7 @@ import Constants.Diccionario;
 public class Mapper {
     private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})");
     private static final Logger LOGGER = LoggerFactory.getLogger(Mapper.class);
+    static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
 
     private Mapper() {}
 
@@ -217,7 +218,7 @@ public class Mapper {
 
         params.put("contractId", movement.getContractId());
         params.put("microloanId", movement.getMicroloanId());
-        params.put("date", new Date(movement.getInstallmentDate().getTime()));
+        params.put("date", movement.getInstallmentDate());
 
         if (movement.getAmount() != null) {
             params.put("amount", movement.getAmount().getAmount());
@@ -235,7 +236,7 @@ public class Mapper {
             Map<String, Object> params = new HashMap<>();
             params.put("contractId", dto.getContractId());
             params.put("operationPageId", dto.getMicroloanId());
-            params.put("date", new java.sql.Date(dto.getInstallmentDate().getTime()));
+            params.put("date", sdf.format(dto.getInstallmentDate()));
             return params;
         }
     
@@ -260,18 +261,20 @@ public class Mapper {
         Map<String, Object> params = new HashMap<>();
         params.put("contractId", dto.getContractId());
         params.put("operationPageId", dto.getMicroloanId());
-        params.put("itemSettlementDate", dto.getInstallmentDate());
+        params.put("itemSettlementDate", sdf.format(dto.getInstallmentDate()));
         params.put("drwdnAmortTradeAmount", dto.getAmount());
         params.put("amortCapitalAmount", dto.getAmountCapital());
         params.put("mcrcrAmortStatusType", Constants.STATUS_PENDING);
         return params;
     }
     
+ 
+    
     public static Map<String, Object> buildParamsUpdateAmortizationCondition(ProductInputDTO dto) {
         Map<String, Object> params = new HashMap<>();
         params.put("contractId", dto.getContractId());
         params.put("operationPageId", dto.getMicroloanId());
-        params.put("itemSettlementDate", dto.getInstallmentDate());
+        params.put("itemSettlementDate", sdf.format(dto.getInstallmentDate()));
         params.put("instlmntFeeRcovrAmount", dto.getAmountComision());
         params.put("recoveredTaxAmount", dto.getAmountIva());
         params.put("mcrcrAmortStatusType", Constants.STATUS_PENDING);
@@ -280,6 +283,3 @@ public class Mapper {
     
        
     }
-
-
-
