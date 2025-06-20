@@ -8,7 +8,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
-import java.text.SimpleDateFormat;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import com.bbva.kmic.dto.payments.ProductInputDTO;
 import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
@@ -100,13 +101,19 @@ public class KMICR092Impl extends KMICR092Abstract {
             processSingleReversal(movement, dto);
         }
 
-        double totalAmountComponents = dto.getAmountCapital() + dto.getAmountComision() + dto.getAmountIva();
+        // Sumar los componentes y redondear a 2 decimales
+        BigDecimal capital = BigDecimal.valueOf(dto.getAmountCapital()).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal comision = BigDecimal.valueOf(dto.getAmountComision()).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal iva = BigDecimal.valueOf(dto.getAmountIva()).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalComponents = capital.add(comision).add(iva);
 
-        if (Double.compare(dto.getAmount(), totalAmountComponents) == 0) {
+        BigDecimal originalAmount = BigDecimal.valueOf(dto.getAmount()).setScale(2, RoundingMode.HALF_UP);
+
+        if (originalAmount.compareTo(totalComponents) == 0) {
             LOGGER.info("El monto total coincide. Ejecutando actualizaciones.");
             executeAllUpdates(dto);
         } else {
-            LOGGER.warn("Monto inconsistente. Monto original: {}, suma componentes: {}", dto.getAmount(), totalAmountComponents);
+            LOGGER.warn("Monto inconsistente. Monto original: {}, suma componentes: {}", originalAmount, totalComponents);
         }
 
         insertMovementsBatch(movements);
