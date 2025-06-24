@@ -132,25 +132,41 @@ public class KMICR092Impl extends KMICR092Abstract {
         movement.getAccount().getEvent().setCode(reversedCode);
         movement.setDate(new Date());
 
-        double amount = movement.getAmount().getAmount();
+        LOGGER.info("GF_OPERATION_PAGE_ID: {} DE CONTRATO {}", movement.getMicroloanId(), movement.getContractId());
 
-        switch (originalCode) {
-            case Diccionario.PGMNCMDI: // Capital
-                dto.setAmountCapital(amount);
-                LOGGER.info("Reverso de CAPITAL aplicado: {}", amount);
-                break;
-            case Diccionario.PGMNIVAC: // IVA
-                dto.setAmountIva(amount);
-                LOGGER.info("Reverso de IVA aplicado: {}", amount);
-                break;
-            case Diccionario.PAGMENCA: // Comisión
-                dto.setAmountComision(amount);
-                LOGGER.info("Reverso de COMISIÓN aplicado: {}", amount);
-                break;
-            default:
-                LOGGER.warn("Tipo de movimiento no reconocido para reverso: {}", originalCode);
+        double amount = movement.getAmount().getAmount();
+        dto.setMicroloanId(movement.getMicroloanId());
+        LOGGER.info("ID PARA EL DTO: {}", dto.getMicroloanId());
+
+        // Condicional 1: Capital
+        if (originalCode.equals(Diccionario.PAGMENCA) ||
+            originalCode.equals(Diccionario.PGANTCAP) ||
+            originalCode.equals(Diccionario.PGVENCAP)) {
+
+            dto.setAmountCapital(amount);
+            LOGGER.info("Reverso de CAPITAL aplicado: {}", amount);
+
+        // Condicional 2: IVA
+        } else if (originalCode.equals(Diccionario.PGMNIVAC) ||
+                   originalCode.equals(Diccionario.PIVACOMD) ||
+                   originalCode.equals(Diccionario.PGVNIVAC)) {
+
+            dto.setAmountIva(amount);
+            LOGGER.info("Reverso de IVA aplicado: {}", amount);
+
+        // Condicional 3: Comisión
+        } else if (originalCode.equals(Diccionario.PGMNCMDI) ||
+                   originalCode.equals(Diccionario.PGCOMDIS) ||
+                   originalCode.equals(Diccionario.PGVNCDIS)) {
+
+            dto.setAmountComision(amount);
+            LOGGER.info("Reverso de COMISIÓN aplicado: {}", amount);
+
+        } else {
+            LOGGER.warn("Tipo de movimiento no reconocido para reverso: {}", originalCode);
         }
     }
+
 
     
     private void executeAllUpdates(ProductInputDTO dto) {
