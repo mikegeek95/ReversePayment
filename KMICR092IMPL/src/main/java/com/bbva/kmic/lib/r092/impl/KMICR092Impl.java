@@ -3,11 +3,7 @@ package com.bbva.kmic.lib.r092.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -22,34 +18,37 @@ import Utils.Mapper;
 public class KMICR092Impl extends KMICR092Abstract {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KMICR092Impl.class);
-    
-    static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
+    private static final Set<String> MOVIMIENTOS_CAPITAL = new HashSet<>(Arrays.asList(
+        Diccionario.PAGMENCA, Diccionario.PGANTCAP, Diccionario.PGVENCAP
+    ));
+    private static final Set<String> MOVIMIENTOS_IVA = new HashSet<>(Arrays.asList(
+        Diccionario.PGMNIVAC, Diccionario.PIVACOMD, Diccionario.PGVNIVAC
+    ));
+    private static final Set<String> MOVIMIENTOS_COMISION = new HashSet<>(Arrays.asList(
+        Diccionario.PGMNCMDI, Diccionario.PGCOMDIS, Diccionario.PGVNCDIS
+    ));
 
     @Override
     public void executeGetReversePayments(List<ProductInputDTO> items) {
         for (ProductInputDTO dto : items) {
             LOGGER.info("[KMICR092] DTO recibido: {}", dto);
 
-            Map<String, Object> params = Mapper.buildParamsLogMovement(dto);
-            List<MicroloanMovement> originalMovementList = getMovementList(dto);
-
-            if (originalMovementList.isEmpty()) {
-                LOGGER.warn("No hay movimientos para procesar para contrato: {}", params.get("contractId"));
+            List<MicroloanMovement> originalMovements = getMovementList(dto);
+            if (originalMovements.isEmpty()) {
+                LOGGER.warn("No hay movimientos para procesar para contrato: {}", dto.getContractId());
                 continue;
             }
 
             List<MicroloanMovement> validatedMovements = new ArrayList<>();
-
-            for (MicroloanMovement movement : originalMovementList) {
-            	String code = movement.getAccount().getEvent().getCode();
+            for (MicroloanMovement movement : originalMovements) {
+                String code = movement.getAccount().getEvent().getCode();
 
                 if (Diccionario.esMovimientoYaReversado(code)) {
                     LOGGER.warn("Movimiento ya reversado omitido: {}", code);
-                    continue; // lo salta
+                    continue;
                 }
-            	
-                MicroloanMovement result = fetchMicroloanMovement(movement);
 
+                MicroloanMovement result = fetchMicroloanMovement(movement);
                 if (result != null) {
                     validatedMovements.add(movement);
                     LOGGER.info("Movimiento válido encontrado: {}", result);
@@ -67,16 +66,11 @@ public class KMICR092Impl extends KMICR092Abstract {
         }
     }
 
-
-    private MicroloanMovement fetchMicroloanMovement(MicroloanMovement inputMovement) {
+    private MicroloanMovement fetchMicroloanMovement(MicroloanMovement input) {
         try {
-            LOGGER.info("Buscando movimiento con parámetros: {}", inputMovement);
-            MicroloanMovement result = kmicR060.executeGetMicroloanMovement(inputMovement);
-
-            if (result == null) {
-                LOGGER.warn("Movimiento no encontrado: {}", inputMovement);
-            }
-
+            LOGGER.info("Buscando movimiento con parámetros: {}", input);
+            MicroloanMovement result = kmicR060.executeGetMicroloanMovement(input);
+            if (result == null) LOGGER.warn("Movimiento no encontrado: {}", input);
             return result;
         } catch (Exception e) {
             LOGGER.error("Error al obtener movimiento de microcrédito", e);
@@ -85,48 +79,48 @@ public class KMICR092Impl extends KMICR092Abstract {
     }
 
     @Override
-    public List<MicroloanMovement> getMovementList(ProductInputDTO args) {
-    	List<MicroloanMovement> movements = new ArrayList<>();
-    	Map<String, Object> params=Mapper.buildParamsLogMovement(args);
+    public List<MicroloanMovement> getMovementList(ProductInputDTO dto) {
         try {
+            Map<String, Object> params = Mapper.buildParamsLogMovement(dto);
             LOGGER.info("Consultando movimientos con parámetros: {}", params);
             List<Map<String, Object>> rows = jdbcUtils.queryForList(Constants.SELECT_TRAE_DATOS_LOG, params);
-            movements = Mapper.mapListMicroloanMovement(rows);
+            List<MicroloanMovement> movements = Mapper.mapListMicroloanMovement(rows);
             LOGGER.info("Movimientos recuperados: {}", movements.size());
+            return movements;
         } catch (Exception e) {
-            LOGGER.error("Error al obtener movimientos para contrato: {}", params.get("contractId"), e);
+            LOGGER.error("Error al obtener movimientos para contrato: {}", dto.getContractId(), e);
+            return Collections.emptyList();
         }
-
-        return movements;
     }
 
- 
     private void applyReversalsAndInsert(List<MicroloanMovement> movements, ProductInputDTO dto) {
         LOGGER.info("Iniciando proceso de reverso para contrato: {}", dto.getContractId());
 
-        for (MicroloanMovement movement : movements) {
-            processSingleReversal(movement, dto);
-        }
+        movements.forEach(movement -> processSingleReversal(movement, dto));
 
-        // Sumar los componentes y redondear a 2 decimales
-        BigDecimal capital = BigDecimal.valueOf(dto.getAmountCapital()).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal comision = BigDecimal.valueOf(dto.getAmountComision()).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal iva = BigDecimal.valueOf(dto.getAmountIva()).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal totalComponents = capital.add(comision).add(iva);
-
-        BigDecimal originalAmount = BigDecimal.valueOf(dto.getAmount()).setScale(2, RoundingMode.HALF_UP);
-
-        if (originalAmount.compareTo(totalComponents) == 0) {
+        if (montoTotalCoincide(dto)) {
             LOGGER.info("El monto total coincide. Ejecutando actualizaciones.");
             executeAllUpdates(dto);
         } else {
-            LOGGER.warn("Monto inconsistente. Monto original: {}, suma componentes: {}", originalAmount, totalComponents);
+            BigDecimal total = sumaComponentes(dto);
+            LOGGER.warn("Monto inconsistente. Monto original: {}, suma componentes: {}",
+                    BigDecimal.valueOf(dto.getAmount()).setScale(2, RoundingMode.HALF_UP), total);
         }
 
         insertMovementsBatch(movements);
     }
 
-    
+    private boolean montoTotalCoincide(ProductInputDTO dto) {
+        BigDecimal original = BigDecimal.valueOf(dto.getAmount()).setScale(2, RoundingMode.HALF_UP);
+        return original.compareTo(sumaComponentes(dto)) == 0;
+    }
+
+    private BigDecimal sumaComponentes(ProductInputDTO dto) {
+        return BigDecimal.valueOf(dto.getAmountCapital()).setScale(2, RoundingMode.HALF_UP)
+                .add(BigDecimal.valueOf(dto.getAmountComision()).setScale(2, RoundingMode.HALF_UP))
+                .add(BigDecimal.valueOf(dto.getAmountIva()).setScale(2, RoundingMode.HALF_UP));
+    }
+
     private void processSingleReversal(MicroloanMovement movement, ProductInputDTO dto) {
         String originalCode = movement.getAccount().getEvent().getCode();
         String reversedCode = Diccionario.obtenerCodigoContrario(originalCode);
@@ -139,43 +133,23 @@ public class KMICR092Impl extends KMICR092Abstract {
         movement.getAccount().getEvent().setCode(reversedCode);
         movement.setDate(new Date());
 
-        LOGGER.info("GF_OPERATION_PAGE_ID: {} DE CONTRATO {}", movement.getMicroloanId(), movement.getContractId());
-
         double amount = movement.getAmount().getAmount();
         dto.setMicroloanId(movement.getMicroloanId());
-        LOGGER.info("ID PARA EL DTO: {}", dto.getMicroloanId());
 
-        // Condicional 1: Capital
-        if (originalCode.equals(Diccionario.PAGMENCA) ||
-            originalCode.equals(Diccionario.PGANTCAP) ||
-            originalCode.equals(Diccionario.PGVENCAP)) {
-
+        if (MOVIMIENTOS_CAPITAL.contains(originalCode)) {
             dto.setAmountCapital(amount);
             LOGGER.info("Reverso de CAPITAL aplicado: {}", amount);
-
-        // Condicional 2: IVA
-        } else if (originalCode.equals(Diccionario.PGMNIVAC) ||
-                   originalCode.equals(Diccionario.PIVACOMD) ||
-                   originalCode.equals(Diccionario.PGVNIVAC)) {
-
+        } else if (MOVIMIENTOS_IVA.contains(originalCode)) {
             dto.setAmountIva(amount);
             LOGGER.info("Reverso de IVA aplicado: {}", amount);
-
-        // Condicional 3: Comisión
-        } else if (originalCode.equals(Diccionario.PGMNCMDI) ||
-                   originalCode.equals(Diccionario.PGCOMDIS) ||
-                   originalCode.equals(Diccionario.PGVNCDIS)) {
-
+        } else if (MOVIMIENTOS_COMISION.contains(originalCode)) {
             dto.setAmountComision(amount);
             LOGGER.info("Reverso de COMISIÓN aplicado: {}", amount);
-
         } else {
             LOGGER.warn("Tipo de movimiento no reconocido para reverso: {}", originalCode);
         }
     }
 
-
-    
     private void executeAllUpdates(ProductInputDTO dto) {
         try {
             executeUpdateMicrocreditContract(dto);
@@ -188,14 +162,11 @@ public class KMICR092Impl extends KMICR092Abstract {
         }
     }
 
-
-
     public int insertMovementsBatch(List<MicroloanMovement> movements) {
         if (movements == null || movements.isEmpty()) {
             LOGGER.warn("Lista vacía de movimientos. No se insertará nada.");
             return 0;
         }
-
         try {
             int inserted = kmicR060.executeCreateMicroloanMovements(movements);
             LOGGER.info("Inserción de movimientos completada. Total insertado: {}", inserted);
@@ -206,40 +177,32 @@ public class KMICR092Impl extends KMICR092Abstract {
         }
     }
 
-    // Métodos heredados expuestos como públicos (si el contrato lo requiere)
-
     @Override
-    public int executeUpdateMicrocreditContract(ProductInputDTO args) {
-    	Map<String, Object> argsu=Mapper.buildParamsUpdateMicrocreditContract(args);
-        return updateWithResult(Constants.UPDATE_MICROCREDIT_CONTRACT, argsu);
+    public int executeUpdateMicrocreditContract(ProductInputDTO dto) {
+        return ejecutarUpdate(Constants.UPDATE_MICROCREDIT_CONTRACT, Mapper.buildParamsUpdateMicrocreditContract(dto));
     }
 
     @Override
-    public int executeUpdateDisposition(ProductInputDTO args) {
-    	Map<String, Object> argsu=Mapper.buildParamsUpdateDisposition(args);
-        return updateWithResult(Constants.UPDATE_MCRCR_DISPOSITION, argsu);
+    public int executeUpdateDisposition(ProductInputDTO dto) {
+        return ejecutarUpdate(Constants.UPDATE_MCRCR_DISPOSITION, Mapper.buildParamsUpdateDisposition(dto));
     }
 
     @Override
-    public int executeUpdateAmortizationContition(ProductInputDTO args) {
-    	Map<String, Object> argsu=Mapper.buildParamsUpdateAmortizationCondition(args);
-        return updateWithResult(Constants.UPDATE_AMORTIZATION_CONDITION, argsu);
+    public int executeUpdateAmortizationContition(ProductInputDTO dto) {
+        return ejecutarUpdate(Constants.UPDATE_AMORTIZATION_CONDITION, Mapper.buildParamsUpdateAmortizationCondition(dto));
     }
 
     @Override
-    public int executeUpdateDspnAmort(ProductInputDTO args) {
-    	Map<String, Object> argsu=Mapper.buildParamsUpdateAmortization(args);
-        return updateWithResult(Constants.UPDATE_MCRCR_AMORTIZATION, argsu);
+    public int executeUpdateDspnAmort(ProductInputDTO dto) {
+        return ejecutarUpdate(Constants.UPDATE_MCRCR_AMORTIZATION, Mapper.buildParamsUpdateAmortization(dto));
     }
-    
-    
-    private int updateWithResult(String queryKey, Map<String, Object> args) {
+
+    private int ejecutarUpdate(String queryKey, Map<String, Object> params) {
         try {
-        	LOGGER.info("Ejecutando update [{}] con parametros contrato: {}", queryKey, args);
-            return jdbcUtils.update(queryKey, args);
-            
+            LOGGER.info("Ejecutando update [{}] con parametros: {}", queryKey, params);
+            return jdbcUtils.update(queryKey, params);
         } catch (DBException e) {
-            LOGGER.info("Error ejecutando update [{}] para contrato: {}", queryKey, args.get("contractId"));
+            LOGGER.info("Error ejecutando update [{}] para contrato: {}", queryKey, params.get("contractId"));
             return 0;
         }
     }
