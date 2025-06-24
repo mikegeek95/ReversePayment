@@ -1,5 +1,7 @@
 package Constants;
 
+import java.util.*;
+
 public class Diccionario {
 
     public static final String CODIGO_MOVIMIENTO = "codigo_movimiento";
@@ -138,5 +140,21 @@ public class Diccionario {
             default:          return null; // Puedes lanzar excepción si quieres forzar consistencia
         }
     }
+    
+    private static final Set<String> MOVIMIENTOS_REVERSADOS = new HashSet<>(Arrays.asList(
+    	    ANPGMNCA, ANPGMNCD, ANPGMNIC, ANPGMNCN, ANPGATCP, ANPGATCD,
+    	    ANPGATIC, ANPGANTC, ANPGGSCB, ANPGIVGC, ANPGVNCP, ANPGCMDI,
+    	    ANPGVNCN
+    	));
+
+    	/**
+    	 * Verifica si el código corresponde a un movimiento ya reversado.
+    	 * @param codigo Código del tipo de movimiento
+    	 * @return true si el código ya representa un reverso, false si es un movimiento original
+    	 */
+    	public static boolean esMovimientoYaReversado(String codigo) {
+    	    return MOVIMIENTOS_REVERSADOS.contains(codigo);
+    	}
+
 
 }

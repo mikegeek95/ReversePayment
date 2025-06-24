@@ -41,6 +41,13 @@ public class KMICR092Impl extends KMICR092Abstract {
             List<MicroloanMovement> validatedMovements = new ArrayList<>();
 
             for (MicroloanMovement movement : originalMovementList) {
+            	String code = movement.getAccount().getEvent().getCode();
+
+                if (Diccionario.esMovimientoYaReversado(code)) {
+                    LOGGER.warn("Movimiento ya reversado omitido: {}", code);
+                    continue; // lo salta
+                }
+            	
                 MicroloanMovement result = fetchMicroloanMovement(movement);
 
                 if (result != null) {
