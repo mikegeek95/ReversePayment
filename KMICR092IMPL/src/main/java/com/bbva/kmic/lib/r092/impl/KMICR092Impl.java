@@ -66,7 +66,7 @@ public class KMICR092Impl extends KMICR092Abstract {
         }
     }
 
-    private MicroloanMovement fetchMicroloanMovement(MicroloanMovement input) {
+    MicroloanMovement fetchMicroloanMovement(MicroloanMovement input) {
         try {
             LOGGER.info("Buscando movimiento con parámetros: {}", input);
             MicroloanMovement result = kmicR060.executeGetMicroloanMovement(input);
@@ -110,18 +110,18 @@ public class KMICR092Impl extends KMICR092Abstract {
         insertMovementsBatch(movements);
     }
 
-    private boolean montoTotalCoincide(ProductInputDTO dto) {
+    boolean montoTotalCoincide(ProductInputDTO dto) {
         BigDecimal original = BigDecimal.valueOf(dto.getAmount()).setScale(2, RoundingMode.HALF_UP);
         return original.compareTo(sumaComponentes(dto)) == 0;
     }
 
-    private BigDecimal sumaComponentes(ProductInputDTO dto) {
+    BigDecimal sumaComponentes(ProductInputDTO dto) {
         return BigDecimal.valueOf(dto.getAmountCapital()).setScale(2, RoundingMode.HALF_UP)
                 .add(BigDecimal.valueOf(dto.getAmountComision()).setScale(2, RoundingMode.HALF_UP))
                 .add(BigDecimal.valueOf(dto.getAmountIva()).setScale(2, RoundingMode.HALF_UP));
     }
 
-    private void processSingleReversal(MicroloanMovement movement, ProductInputDTO dto) {
+    void processSingleReversal(MicroloanMovement movement, ProductInputDTO dto) {
         String originalCode = movement.getAccount().getEvent().getCode();
         String reversedCode = Diccionario.obtenerCodigoContrario(originalCode);
 
@@ -197,7 +197,7 @@ public class KMICR092Impl extends KMICR092Abstract {
         return ejecutarUpdate(Constants.UPDATE_MCRCR_AMORTIZATION, Mapper.buildParamsUpdateAmortization(dto));
     }
 
-    private int ejecutarUpdate(String queryKey, Map<String, Object> params) {
+    int ejecutarUpdate(String queryKey, Map<String, Object> params) {
         try {
             LOGGER.info("Ejecutando update [{}] con parametros: {}", queryKey, params);
             return jdbcUtils.update(queryKey, params);
