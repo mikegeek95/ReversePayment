@@ -9,15 +9,22 @@
   <job id="KMICJ044-01-ZZ" incrementer="defaultIncrementer" job-repository="jobRepository">
     <description>severse payment</description>
 
-    <step id="step-read-archivo">
+    <step id="stepReservePayment">
       <tasklet>
         <chunk reader="itemReader" writer="itemWriter" commit-interval="1"/>
       </tasklet>
-      <next on="COMPLETED" to="step-delete-archivo"/>
+      <next on="COMPLETED" to="stepDeleteFile"/>
+      <next on="FAILED" to="stepFailedExecution"/>
     </step>
 
-    <step id="step-delete-archivo">
+    <step id="stepDeleteFile">
       <tasklet ref="deleteInputFile"/>
+      <next on="FAILED" to="stepFailedExecution"/>
     </step>
+
+    <step id="stepFailedExecution">
+      <tasklet ref="failedExecutionTasklet"/>
+    </step>
+
   </job>
 </beans:beans>

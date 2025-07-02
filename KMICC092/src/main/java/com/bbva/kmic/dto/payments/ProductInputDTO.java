@@ -16,7 +16,48 @@ public class ProductInputDTO implements Serializable {
     private double amount;             // GF_MOVEMENT_AMOUNT (pago completo)
     private double amountCapital;      // GF_MOVEMENT_AMOUNT (capital)
     private double amountComision;     // GF_MOVEMENT_AMOUNT (comisión)
-    private double amountIva;          // GF_MOVEMENT_AMOUNT (IVA)
+    private double amountIva; 
+    private double amountIvaCobranza;
+    private double amountCapCobranza;
+    private String movId;
+    private int sequenceId;
+    
+    public int getSequenceId() {
+		return sequenceId;
+	}
+
+	public void setSequenceId(int sequenceId) {
+		this.sequenceId = sequenceId;
+	}
+
+	public String getMovId() {
+		return movId;
+	}
+
+	public void setMovId(String movId) {
+		this.movId = movId;
+	}
+
+
+	
+    
+    public double getAmountIvaCobranza() {
+		return amountIvaCobranza;
+	}
+
+	public void setAmountIvaCobranza(double amountIvaCobranza) {
+		this.amountIvaCobranza = amountIvaCobranza;
+	}
+
+	public double getAmountCapCobranza() {
+		return amountCapCobranza;
+	}
+
+	public void setAmountCapCobranza(double amountCapCobranza) {
+		this.amountCapCobranza = amountCapCobranza;
+	}
+
+    // GF_MOVEMENT_AMOUNT (IVA)
 
     // === Getters y Setters ===
     public String getContractId() {
@@ -75,6 +116,7 @@ public class ProductInputDTO implements Serializable {
         this.amountIva = amountIva;
     }
 
+    
     // === Representación textual ===
     @Override
     public String toString() {

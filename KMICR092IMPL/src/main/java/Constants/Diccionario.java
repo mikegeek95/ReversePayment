@@ -110,7 +110,7 @@ public class Diccionario {
             // Pago vencido
             case PGVENCAP:    return ANPGVNCP;
             case PGVNCDIS:    return ANPGCMDI;
-            case PGVNIVAC:    return null; // No hay reverso en tu lista
+            case PGVNIVAC:    return ""; // No hay reverso en tu lista
             case PGVENCON:    return ANPGVNCN;
 
             // Reprocesamiento

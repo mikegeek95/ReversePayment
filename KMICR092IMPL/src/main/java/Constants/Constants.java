@@ -36,6 +36,8 @@ public final class Constants {
     /** Update sobre T_KMIC_AMORTIZATION_CONDITION */
     public static final String UPDATE_AMORTIZATION_CONDITION = "update.amortization.condition";
     
+    public static final String UPDATE_CONTRACT_CONDITION="update.contract.condition";
+    
     public static final String STATUS_PENDING = "PENDING";
 
 }

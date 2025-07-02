@@ -52,6 +52,10 @@
     <property name="pathUtils" ref="pathUtils"/>
     <property name="filename" value="#{jobParameters['InputFile']}"/>
   </bean>
+  
+  <!-- Error -->
+    <bean id="failedExecutionTasklet" class="com.bbva.kmic.batch.FailedExecutionTasklet" scope="step"/>
+
 
 </beans>
 

@@ -17,8 +17,9 @@ public interface KMICR092 {
 	 int executeUpdateMicrocreditContract (ProductInputDTO args);
 	 int executeUpdateAmortizationContition (ProductInputDTO args);
 	 int executeUpdateDspnAmort (ProductInputDTO args);
-	List<MicroloanMovement> getMovementList(ProductInputDTO params);
+	List<MicroloanMovement> executeGetMovementList(ProductInputDTO params);
 	int executeUpdateDisposition(ProductInputDTO args);
+	int executeUpdateContractCondition(ProductInputDTO dto);
 	
 
 }

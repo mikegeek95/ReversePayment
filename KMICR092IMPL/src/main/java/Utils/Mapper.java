@@ -112,6 +112,19 @@ public class Mapper {
         amount.setCurrency(getString(row.get("G_CURRENCY_ID")));
         return amount;
     }
+    
+    
+    public static Map<String, Object> buildParamsUpdateContractCondition(ProductInputDTO dto) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("feeRecoveredAmonut", dto.getAmountCapCobranza());
+        params.put("taxRecoveredAmount", dto.getAmountIvaCobranza());
+        params.put("contractId", dto.getContractId());
+        params.put("acctMovId", dto.getMovId());
+        params.put("itemSettlementDate", dto.getInstallmentDate());
+        params.put("sequenceId", dto.getSequenceId());
+        params.put("contCondStatusType", Constants.STATUS_PENDING);
+        return params;
+    }
 
     private static String getString(Object o) {
         return o == null ? null : o.toString();
