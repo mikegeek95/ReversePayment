@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -18,16 +20,25 @@ import Utils.Mapper;
 public class KMICR092Impl extends KMICR092Abstract {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KMICR092Impl.class);
-    private static final Set<String> MOVIMIENTOS_CAPITAL = new HashSet<>(Arrays.asList(
-        Diccionario.PAGMENCA, Diccionario.PGANTCAP, Diccionario.PGVENCAP
-    ));
-    private static final Set<String> MOVIMIENTOS_IVA = new HashSet<>(Arrays.asList(
-        Diccionario.PGMNIVAC, Diccionario.PIVACOMD, Diccionario.PGVNIVAC
-    ));
-    private static final Set<String> MOVIMIENTOS_COMISION = new HashSet<>(Arrays.asList(
-        Diccionario.PGMNCMDI, Diccionario.PGCOMDIS, Diccionario.PGVNCDIS
-    ));
 
+    private static final Set<String> MOVIMIENTOS_CAPITAL = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+        Diccionario.PAGMENCA, Diccionario.PGANTCAP, Diccionario.PGVENCAP
+    )));
+    private static final Set<String> MOVIMIENTOS_IVA = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+        Diccionario.PGMNIVAC, Diccionario.PIVACOMD, Diccionario.PGVNIVAC
+    )));
+    private static final Set<String> MOVIMIENTOS_COMISION = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+        Diccionario.PGMNCMDI, Diccionario.PGCOMDIS, Diccionario.PGVNCDIS
+    )));
+
+    private static final Map<String, BiConsumer<ProductInputDTO, Double>> REVERSAL_ACTIONS = new HashMap<>();
+    static {
+        MOVIMIENTOS_CAPITAL.forEach(code -> REVERSAL_ACTIONS.put(code, ProductInputDTO::setAmountCapital));
+        MOVIMIENTOS_IVA.forEach(code -> REVERSAL_ACTIONS.put(code, ProductInputDTO::setAmountIva));
+        MOVIMIENTOS_COMISION.forEach(code -> REVERSAL_ACTIONS.put(code, ProductInputDTO::setAmountComision));
+        REVERSAL_ACTIONS.put(Diccionario.PGIVAGCB, ProductInputDTO::setAmountIvaCobranza);
+        REVERSAL_ACTIONS.put(Diccionario.PGGASCOB, ProductInputDTO::setAmountCapCobranza);
+    }
 
     @Override
     public void executeGetReversePayments(List<ProductInputDTO> items) {
@@ -40,23 +51,26 @@ public class KMICR092Impl extends KMICR092Abstract {
                 continue;
             }
 
-            List<MicroloanMovement> validatedMovements = new ArrayList<>();
-            for (MicroloanMovement movement : originalMovements) {
-                String code = movement.getAccount().getEvent().getCode();
-
-                if (Diccionario.esMovimientoYaReversado(code)) {
-                    LOGGER.warn("Movimiento ya reversado omitido: {}", code);
-                    continue;
-                }
-
-                MicroloanMovement result = executeFetchMicroloanMovement(movement);
-                if (result != null) {
-                    validatedMovements.add(movement);
-                    LOGGER.info("Movimiento válido encontrado: {}", result);
-                } else {
-                    LOGGER.warn("Movimiento no válido (no encontrado): {}", movement);
-                }
-            }
+            List<MicroloanMovement> validatedMovements = originalMovements.stream()
+                .filter(movement -> {
+                    String code = movement.getAccount().getEvent().getCode();
+                    if (Diccionario.esMovimientoYaReversado(code)) {
+                        LOGGER.warn("Movimiento ya reversado omitido: {}", code);
+                        return false;
+                    }
+                    return true;
+                })
+                .filter(movement -> {
+                    MicroloanMovement result = executeFetchMicroloanMovement(movement);
+                    if (result != null) {
+                        LOGGER.info("Movimiento válido encontrado: {}", result);
+                        return true;
+                    } else {
+                        LOGGER.warn("Movimiento no válido (no encontrado): {}", movement);
+                        return false;
+                    }
+                })
+                .collect(Collectors.toList());
 
             if (validatedMovements.isEmpty()) {
                 LOGGER.warn("No se encontró ningún movimiento válido para: {}", dto.getContractId());
@@ -74,7 +88,7 @@ public class KMICR092Impl extends KMICR092Abstract {
             if (result == null) LOGGER.warn("Movimiento no encontrado: {}", input);
             return result;
         } catch (Exception e) {
-            LOGGER.error("Error al obtener movimiento de microcredito", e);
+            LOGGER.error("Error al obtener movimiento de microcrédito", e);
             return null;
         }
     }
@@ -105,21 +119,26 @@ public class KMICR092Impl extends KMICR092Abstract {
         } else {
             BigDecimal total = executePlusAmount(dto);
             LOGGER.warn("Monto inconsistente. Monto original: {}, suma componentes: {}",
-                    BigDecimal.valueOf(dto.getAmount()).setScale(2, RoundingMode.HALF_UP), total);
+                    toMoney(dto.getAmount()), total);
         }
 
         executeInsertMovementsBatch(movements);
     }
 
     private boolean executeEqualsAmount(ProductInputDTO dto) {
-        BigDecimal original = BigDecimal.valueOf(dto.getAmount()).setScale(2, RoundingMode.HALF_UP);
-        return original.compareTo(executePlusAmount(dto)) == 0;
+        return toMoney(dto.getAmount()).compareTo(executePlusAmount(dto)) == 0;
     }
 
     BigDecimal executePlusAmount(ProductInputDTO dto) {
-        return BigDecimal.valueOf(dto.getAmountCapital()).setScale(2, RoundingMode.HALF_UP)
-                .add(BigDecimal.valueOf(dto.getAmountComision()).setScale(2, RoundingMode.HALF_UP))
-                .add(BigDecimal.valueOf(dto.getAmountIva()).setScale(2, RoundingMode.HALF_UP));
+        return toMoney(dto.getAmountCapital())
+                .add(toMoney(dto.getAmountComision()))
+                .add(toMoney(dto.getAmountIva()))
+                .add(toMoney(dto.getAmountCapCobranza()))
+                .add(toMoney(dto.getAmountIvaCobranza()));
+    }
+
+    private BigDecimal toMoney(double value) {
+        return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP);
     }
 
     private void executeProcessSingleReversal(MicroloanMovement movement, ProductInputDTO dto) {
@@ -127,7 +146,7 @@ public class KMICR092Impl extends KMICR092Abstract {
         String reversedCode = Diccionario.obtenerCodigoContrario(originalCode);
 
         if (reversedCode == null) {
-            LOGGER.warn("No se encontro reverso para el codigo: {}", originalCode);
+            LOGGER.warn("No se encontró reverso para el código: {}", originalCode);
             return;
         }
 
@@ -139,22 +158,11 @@ public class KMICR092Impl extends KMICR092Abstract {
         dto.setMovId(movement.getAccount().getNumber());
         dto.setSequenceId(movement.getNumber());
 
-        if (MOVIMIENTOS_CAPITAL.contains(originalCode)) {
-            dto.setAmountCapital(amount);
-            LOGGER.info("Reverso de CAPITAL aplicado: {}", amount);
-        } else if (MOVIMIENTOS_IVA.contains(originalCode)) {
-            dto.setAmountIva(amount);
-            LOGGER.info("Reverso de IVA aplicado: {}", amount);
-        } else if (MOVIMIENTOS_COMISION.contains(originalCode)) {
-            dto.setAmountComision(amount);
-            LOGGER.info("Reverso de COMISION aplicado: {}", amount);
-        } else if (Diccionario.PGIVAGCB.equals(originalCode)) {
-            dto.setAmountIvaCobranza(amount);
-            LOGGER.info("Reverso de COBRANZA a iva aplicado: {}", amount);
-        }else if (Diccionario.PGGASCOB.equals(originalCode)) {
-            dto.setAmountCapCobranza(amount);
-            LOGGER.info("Reverso de COBRANZA a capital aplicado: {}", amount);
-        }else {
+        BiConsumer<ProductInputDTO, Double> action = REVERSAL_ACTIONS.get(originalCode);
+        if (action != null) {
+            action.accept(dto, amount);
+            LOGGER.info("Reverso aplicado para código {}: {}", originalCode, amount);
+        } else {
             LOGGER.warn("Tipo de movimiento no reconocido para reverso: {}", originalCode);
         }
     }
@@ -206,7 +214,7 @@ public class KMICR092Impl extends KMICR092Abstract {
     public int executeUpdateDspnAmort(ProductInputDTO dto) {
         return executeUpdates(Constants.UPDATE_MCRCR_AMORTIZATION, Mapper.buildParamsUpdateAmortization(dto));
     }
-    
+
     @Override
     public int executeUpdateContractCondition(ProductInputDTO dto) {
         return executeUpdates(Constants.UPDATE_CONTRACT_CONDITION, Mapper.buildParamsUpdateContractCondition(dto));
@@ -214,7 +222,7 @@ public class KMICR092Impl extends KMICR092Abstract {
 
     private int executeUpdates(String queryKey, Map<String, Object> params) {
         try {
-            LOGGER.info("Ejecutando update [{}] con parametros: {}", queryKey, params);
+            LOGGER.info("Ejecutando update [{}] con parámetros: {}", queryKey, params);
             return jdbcUtils.update(queryKey, params);
         } catch (DBException e) {
             LOGGER.info("Error ejecutando update [{}] para contrato: {}", queryKey, params.get("contractId"));

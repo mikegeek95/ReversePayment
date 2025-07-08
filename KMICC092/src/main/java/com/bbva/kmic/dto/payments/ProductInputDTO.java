@@ -131,6 +131,10 @@ public class ProductInputDTO implements Serializable {
                 ", amountCapital=" + amountCapital +
                 ", amountComision=" + amountComision +
                 ", amountIva=" + amountIva +
+                ", amountIvaCobranza="+ amountIvaCobranza+
+                ", amountCapCobranza=" +amountCapCobranza+
+                ", movId=" + movId+
+                ", sequenceId=" +sequenceId+
                 '}';
     }
 }
