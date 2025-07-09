@@ -33,9 +33,12 @@ public class Mapper {
         movement.setMicroloanId(getString(row.get("GF_OPERATION_PAGE_ID")));
         movement.setInstallmentDate(getDate(row.get("GF_INSTALLMENT_PERIOD_DATE")));
         movement.setChannelCode(getString(row.get("GF_APP_CHANNEL_ID")));
-
         movement.setAccount(readAccount(row));
         movement.setAmount(readAmount(row));
+        movement.setRelatedContract(readRelatedContract(row));
+        movement.setAudit(readAudit(row));
+        movement.setInterbankTrackingDescription(getString(row.get("GF_TRACKING_TRANSACTION_DESC")));
+
         return movement;
     }
 
@@ -98,13 +101,35 @@ public class Mapper {
         account.setDate(getDate(row.get("GF_GL_ACCOUNT_DATE")));
         account.setCoded(getString(row.get("GF_GL_ACCOUNTING_STRING_ID")));
         account.setPositionNumber(getString(row.get("GF_ACCOUNTING_POSITION_ID")));
-
+        event.setRegionalCenter(readRegionalCenter(row));
         event.setCode(getString(row.get("G_MICROCREDIT_MOVEMENT_TYPE")));
         event.setStatus(getString(row.get("G_ACTIVE_MOVEMENT_IND_TYPE")));
 
         account.setEvent(event);
         return account;
     }
+    private static RelatedContract readRelatedContract(Map<String, Object> row) {
+        RelatedContract contract = new RelatedContract();
+        contract.setContractType(getString(row.get("G_LOCAL_CONTRACT_TYPE")));
+        contract.setNumber(getString(row.get("GF_MOV_ASSO_ACCOUNT_ID")));
+        return contract;
+    }
+
+    private static Audit readAudit(Map<String, Object> row) {
+        Audit audit = new Audit();
+        audit.setUserCode(getString(row.get("GF_USER_AUDIT_ID")));
+        audit.setTimestamp(getTimestamp(row.get("GF_AUDIT_DATE")));
+        return audit;
+    }
+
+    private static RegionalCenter readRegionalCenter(Map<String, Object> row) {
+        RegionalCenter rc = new RegionalCenter();
+        rc.setDestiny(getString(row.get("GF_NEW_CUST_REGIONAL_CENTRE_ID")));
+        rc.setOperative(getString(row.get("GF_CUSTOMER_PROPOSAL_BRANCH_ID")));
+        rc.setOrigin(getString(row.get("GF_CREDIT_REQUEST_ORIGIN_RC_ID")));
+        return rc;
+    }
+
 
     private static Amount readAmount(Map<String, Object> row) {
         Amount amount = new Amount();
@@ -134,6 +159,15 @@ public class Mapper {
         if (o instanceof Number) return ((Number) o).intValue();
         if (o instanceof String) return Integer.parseInt((String) o);
         return 0;
+    }
+    
+    private static Calendar getTimestamp(Object o) {
+        if (o instanceof java.sql.Timestamp) {
+            Calendar cal = Calendar.getInstance();
+            cal.setTimeInMillis(((java.sql.Timestamp) o).getTime());
+            return cal;
+        }
+        return null;
     }
 
     private static double getDouble(Object o) {

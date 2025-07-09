@@ -1,6 +1,7 @@
 package Utils;
 
 import java.lang.reflect.Method;
+import java.util.Calendar;
 import java.util.Date;
 
 public class MapperTestHelper {
@@ -44,4 +45,15 @@ public class MapperTestHelper {
             return null;
         }
     }
+    
+    public static Calendar callGetTimestamp(Object input) {
+        try {
+            Method m = Mapper.class.getDeclaredMethod("getTimestamp", Object.class);
+            m.setAccessible(true);
+            return (Calendar) m.invoke(null, input);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 }

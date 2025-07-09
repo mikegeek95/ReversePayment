@@ -30,12 +30,15 @@ public class KMICR092Impl extends KMICR092Abstract {
     private static final Set<String> MOVIMIENTOS_COMISION = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
         Diccionario.PGMNCMDI, Diccionario.PGCOMDIS, Diccionario.PGVNCDIS
     )));
-
+    private static final Set<String> MOVIMIENTOS_AUTOMATICOS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            Diccionario.PGAUTCON, Diccionario.PGANTCON, Diccionario.PGVENCON
+        )));
     private static final Map<String, BiConsumer<ProductInputDTO, Double>> REVERSAL_ACTIONS = new HashMap<>();
     static {
         MOVIMIENTOS_CAPITAL.forEach(code -> REVERSAL_ACTIONS.put(code, ProductInputDTO::setAmountCapital));
         MOVIMIENTOS_IVA.forEach(code -> REVERSAL_ACTIONS.put(code, ProductInputDTO::setAmountIva));
         MOVIMIENTOS_COMISION.forEach(code -> REVERSAL_ACTIONS.put(code, ProductInputDTO::setAmountComision));
+        MOVIMIENTOS_AUTOMATICOS.forEach(code -> REVERSAL_ACTIONS.put(code, ProductInputDTO::setAmount));
         REVERSAL_ACTIONS.put(Diccionario.PGIVAGCB, ProductInputDTO::setAmountIvaCobranza);
         REVERSAL_ACTIONS.put(Diccionario.PGGASCOB, ProductInputDTO::setAmountCapCobranza);
     }
