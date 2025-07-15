@@ -3,15 +3,15 @@ package com.bbva.kmic.lib.r092.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 
-import com.bbva.kmic.dto.payments.ProductInputDTO;
-import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
 import com.bbva.apx.exception.db.DBException;
+import com.bbva.kmic.dto.movementmodel.MicroloanMovement;
+import com.bbva.kmic.dto.payments.ProductInputDTO;
 
 import Constants.Constants;
 import Constants.Diccionario;
@@ -31,14 +31,15 @@ public class KMICR092Impl extends KMICR092Abstract {
         Diccionario.PGMNCMDI, Diccionario.PGCOMDIS, Diccionario.PGVNCDIS
     )));
     private static final Set<String> MOVIMIENTOS_AUTOMATICOS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            Diccionario.PGAUTCON, Diccionario.PGANTCON, Diccionario.PGVENCON
-        )));
+        Diccionario.PGAUTCON, Diccionario.PGANTCON, Diccionario.PGVENCON
+    )));
+
     private static final Map<String, BiConsumer<ProductInputDTO, Double>> REVERSAL_ACTIONS = new HashMap<>();
     static {
         MOVIMIENTOS_CAPITAL.forEach(code -> REVERSAL_ACTIONS.put(code, ProductInputDTO::setAmountCapital));
         MOVIMIENTOS_IVA.forEach(code -> REVERSAL_ACTIONS.put(code, ProductInputDTO::setAmountIva));
         MOVIMIENTOS_COMISION.forEach(code -> REVERSAL_ACTIONS.put(code, ProductInputDTO::setAmountComision));
-        MOVIMIENTOS_AUTOMATICOS.forEach(code -> REVERSAL_ACTIONS.put(code, ProductInputDTO::setAmount));
+        MOVIMIENTOS_AUTOMATICOS.forEach(code -> REVERSAL_ACTIONS.put(code, ProductInputDTO::setAmountAutomatico));
         REVERSAL_ACTIONS.put(Diccionario.PGIVAGCB, ProductInputDTO::setAmountIvaCobranza);
         REVERSAL_ACTIONS.put(Diccionario.PGGASCOB, ProductInputDTO::setAmountCapCobranza);
     }
@@ -63,16 +64,7 @@ public class KMICR092Impl extends KMICR092Abstract {
                     }
                     return true;
                 })
-                .filter(movement -> {
-                    MicroloanMovement result = executeFetchMicroloanMovement(movement);
-                    if (result != null) {
-                        LOGGER.info("Movimiento válido encontrado: {}", result);
-                        return true;
-                    } else {
-                        LOGGER.warn("Movimiento no válido (no encontrado): {}", movement);
-                        return false;
-                    }
-                })
+                .filter(movement -> executeFetchMicroloanMovement(movement) != null)
                 .collect(Collectors.toList());
 
             if (validatedMovements.isEmpty()) {
@@ -80,16 +72,22 @@ public class KMICR092Impl extends KMICR092Abstract {
                 continue;
             }
 
-            executeReversalsAndInsert(validatedMovements, dto);
+            List<MicroloanMovement> selectedCombination = findMatchingCombination(validatedMovements, dto.getAmount());
+
+            if (!selectedCombination.isEmpty()) {
+                selectedCombination.forEach(movement -> executeProcessSingleReversal(movement, dto));
+                LOGGER.info("Combinación válida encontrada. Ejecutando actualizaciones.");
+                executeAllUpdates(dto);
+                executeInsertMovementsBatch(selectedCombination);
+            } else {
+                LOGGER.warn("No se encontró combinación que coincida con el monto: {}", dto.getAmount());
+            }
         }
     }
 
     private MicroloanMovement executeFetchMicroloanMovement(MicroloanMovement input) {
         try {
-            LOGGER.info("Buscando movimiento con parámetros: {}", input);
-            MicroloanMovement result = kmicR060.executeGetMicroloanMovement(input);
-            if (result == null) LOGGER.warn("Movimiento no encontrado: {}", input);
-            return result;
+            return kmicR060.executeGetMicroloanMovement(input);
         } catch (Exception e) {
             LOGGER.error("Error al obtener movimiento de microcrédito", e);
             return null;
@@ -100,44 +98,33 @@ public class KMICR092Impl extends KMICR092Abstract {
     public List<MicroloanMovement> executeGetMovementList(ProductInputDTO dto) {
         try {
             Map<String, Object> params = Mapper.buildParamsLogMovement(dto);
-            LOGGER.info("Consultando movimientos con parámetros: {}", params);
             List<Map<String, Object>> rows = jdbcUtils.queryForList(Constants.SELECT_TRAE_DATOS_LOG, params);
-            List<MicroloanMovement> movements = Mapper.mapListMicroloanMovement(rows);
-            LOGGER.info("Movimientos recuperados: {}", movements.size());
-            return movements;
+            return Mapper.mapListMicroloanMovement(rows);
         } catch (Exception e) {
             LOGGER.error("Error al obtener movimientos para contrato: {}", dto.getContractId(), e);
             return Collections.emptyList();
         }
     }
 
-    private void executeReversalsAndInsert(List<MicroloanMovement> movements, ProductInputDTO dto) {
-        LOGGER.info("Iniciando proceso de reverso para contrato: {}", dto.getContractId());
+    private List<MicroloanMovement> findMatchingCombination(List<MicroloanMovement> movements, double targetAmount) {
+        List<MicroloanMovement> result = new ArrayList<>();
+        int n = movements.size();
+        BigDecimal target = toMoney(targetAmount);
 
-        movements.forEach(movement -> executeProcessSingleReversal(movement, dto));
+        for (int i = 1; i < (1 << n); i++) {
+            List<MicroloanMovement> subset = new ArrayList<>();
+            BigDecimal sum = BigDecimal.ZERO;
 
-        if (executeEqualsAmount(dto)) {
-            LOGGER.info("El monto total coincide. Ejecutando actualizaciones.");
-            executeAllUpdates(dto);
-        } else {
-            BigDecimal total = executePlusAmount(dto);
-            LOGGER.warn("Monto inconsistente. Monto original: {}, suma componentes: {}",
-                    toMoney(dto.getAmount()), total);
+            for (int j = 0; j < n; j++) {
+                if ((i & (1 << j)) != 0) {
+                    MicroloanMovement m = movements.get(j);
+                    subset.add(m);
+                    sum = sum.add(toMoney(m.getAmount().getAmount()));
+                }
+            }
+            if (sum.compareTo(target) == 0) return subset;
         }
-
-        executeInsertMovementsBatch(movements);
-    }
-
-    private boolean executeEqualsAmount(ProductInputDTO dto) {
-        return toMoney(dto.getAmount()).compareTo(executePlusAmount(dto)) == 0;
-    }
-
-    BigDecimal executePlusAmount(ProductInputDTO dto) {
-        return toMoney(dto.getAmountCapital())
-                .add(toMoney(dto.getAmountComision()))
-                .add(toMoney(dto.getAmountIva()))
-                .add(toMoney(dto.getAmountCapCobranza()))
-                .add(toMoney(dto.getAmountIvaCobranza()));
+        return result;
     }
 
     private BigDecimal toMoney(double value) {
@@ -147,7 +134,6 @@ public class KMICR092Impl extends KMICR092Abstract {
     private void executeProcessSingleReversal(MicroloanMovement movement, ProductInputDTO dto) {
         String originalCode = movement.getAccount().getEvent().getCode();
         String reversedCode = Diccionario.obtenerCodigoContrario(originalCode);
-
         if (reversedCode == null) {
             LOGGER.warn("No se encontró reverso para el código: {}", originalCode);
             return;
@@ -177,21 +163,14 @@ public class KMICR092Impl extends KMICR092Abstract {
             executeUpdateAmortizationContition(dto);
             executeUpdateDspnAmort(dto);
             executeUpdateContractCondition(dto);
-            LOGGER.info("Actualizaciones completadas correctamente para el contrato: {}", dto.getContractId());
         } catch (Exception e) {
-            LOGGER.error("Error en la ejecución de actualizaciones para el contrato: {}", dto.getContractId(), e);
+            LOGGER.error("Error ejecutando actualizaciones para contrato: {}", dto.getContractId(), e);
         }
     }
 
-    public int executeInsertMovementsBatch(List<MicroloanMovement> movements) {
-        if (movements == null || movements.isEmpty()) {
-            LOGGER.warn("Lista vacía de movimientos. No se insertará nada.");
-            return 0;
-        }
+    private int executeInsertMovementsBatch(List<MicroloanMovement> movements) {
         try {
-            int inserted = kmicR060.executeCreateMicroloanMovements(movements);
-            LOGGER.info("Inserción de movimientos completada. Total insertado: {}", inserted);
-            return inserted;
+            return kmicR060.executeCreateMicroloanMovements(movements);
         } catch (Exception e) {
             LOGGER.error("Error al insertar movimientos", e);
             return 0;
@@ -225,7 +204,6 @@ public class KMICR092Impl extends KMICR092Abstract {
 
     private int executeUpdates(String queryKey, Map<String, Object> params) {
         try {
-            LOGGER.info("Ejecutando update [{}] con parámetros: {}", queryKey, params);
             return jdbcUtils.update(queryKey, params);
         } catch (DBException e) {
             LOGGER.info("Error ejecutando update [{}] para contrato: {}", queryKey, params.get("contractId"));
@@ -233,4 +211,3 @@ public class KMICR092Impl extends KMICR092Abstract {
         }
     }
 }
-

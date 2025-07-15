@@ -17,6 +17,7 @@ public class ProductInputDTO implements Serializable {
     private double amountCapital;      // GF_MOVEMENT_AMOUNT (capital)
     private double amountComision;     // GF_MOVEMENT_AMOUNT (comisión)
     private double amountIva; 
+    private double amountAutomatico; 
     private double amountIvaCobranza;
     private double amountCapCobranza;
     private String movId;
@@ -116,6 +117,13 @@ public class ProductInputDTO implements Serializable {
         this.amountIva = amountIva;
     }
 
+    public double getAmountAutomatico() {
+        return amountAutomatico;
+    }
+
+    public void setAmountAutomatico(double amountAutomatico) {
+        this.amountAutomatico = amountAutomatico;
+    }
     
     // === Representación textual ===
     @Override
@@ -131,6 +139,7 @@ public class ProductInputDTO implements Serializable {
                 ", amountCapital=" + amountCapital +
                 ", amountComision=" + amountComision +
                 ", amountIva=" + amountIva +
+                ", amountAutomatico=" + amountAutomatico +
                 ", amountIvaCobranza="+ amountIvaCobranza+
                 ", amountCapCobranza=" +amountCapCobranza+
                 ", movId=" + movId+
