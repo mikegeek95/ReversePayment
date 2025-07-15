@@ -171,7 +171,6 @@ public class MapperTest {
         dto.setAmountCapCobranza(100.0);
         dto.setAmountIvaCobranza(100.1);
         dto.setMovId("MID2");
-        dto.setSequenceId(123);
         return dto;
     }
 }

@@ -145,7 +145,6 @@ public class KMICR092Impl extends KMICR092Abstract {
         double amount = movement.getAmount().getAmount();
         dto.setMicroloanId(movement.getMicroloanId());
         dto.setMovId(movement.getAccount().getNumber());
-        dto.setSequenceId(movement.getNumber());
 
         BiConsumer<ProductInputDTO, Double> action = REVERSAL_ACTIONS.get(originalCode);
         if (action != null) {
@@ -159,10 +158,15 @@ public class KMICR092Impl extends KMICR092Abstract {
     private void executeAllUpdates(ProductInputDTO dto) {
         try {
             executeUpdateMicrocreditContract(dto);
+            LOGGER.info("Update executeUpdateMicrocreditContract con datos: {}", dto);
             executeUpdateDisposition(dto);
+            LOGGER.info("Update executeUpdateDisposition con datos: {}", dto);
             executeUpdateAmortizationContition(dto);
+            LOGGER.info("Update executeUpdateAmortizationContition con datos: {}", dto);
             executeUpdateDspnAmort(dto);
+            LOGGER.info("Update executeUpdateDspnAmort con datos: {}", dto);
             executeUpdateContractCondition(dto);
+            LOGGER.info("Update executeUpdateContractCondition con datos: {}", dto);
         } catch (Exception e) {
             LOGGER.error("Error ejecutando actualizaciones para contrato: {}", dto.getContractId(), e);
         }
@@ -204,6 +208,7 @@ public class KMICR092Impl extends KMICR092Abstract {
 
     private int executeUpdates(String queryKey, Map<String, Object> params) {
         try {
+        	LOGGER.info("Ejecutando update [{}] para contrato: {}", queryKey, params);
             return jdbcUtils.update(queryKey, params);
         } catch (DBException e) {
             LOGGER.info("Error ejecutando update [{}] para contrato: {}", queryKey, params.get("contractId"));

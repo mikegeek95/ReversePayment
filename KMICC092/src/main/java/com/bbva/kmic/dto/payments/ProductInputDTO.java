@@ -21,15 +21,7 @@ public class ProductInputDTO implements Serializable {
     private double amountIvaCobranza;
     private double amountCapCobranza;
     private String movId;
-    private int sequenceId;
-    
-    public int getSequenceId() {
-		return sequenceId;
-	}
 
-	public void setSequenceId(int sequenceId) {
-		this.sequenceId = sequenceId;
-	}
 
 	public String getMovId() {
 		return movId;
@@ -143,7 +135,6 @@ public class ProductInputDTO implements Serializable {
                 ", amountIvaCobranza="+ amountIvaCobranza+
                 ", amountCapCobranza=" +amountCapCobranza+
                 ", movId=" + movId+
-                ", sequenceId=" +sequenceId+
                 '}';
     }
 }
