@@ -55,21 +55,27 @@ public class KMICR092Impl extends KMICR092Abstract {
                 continue;
             }
 
+            LOGGER.info("Obteniendo movimientos reversados y no reversados");
             List<MicroloanMovement> reversados = getMovimientosReversados(originalMovements);
             List<MicroloanMovement> noReversados = getMovimientosNoReversados(originalMovements);
 
+            LOGGER.info("Construyendo índice de movimientos ya reversados");
             Set<String> movimientosYaReversados = buildReversoIndex(reversados);
 
+            LOGGER.info("Filtrando movimientos que ya han sido reversados y validando existencia en BD");
             List<MicroloanMovement> movimientosFinales = noReversados.stream()
                 .filter(mov -> !estaYaReversado(mov, movimientosYaReversados))
                 .filter(mov -> executeFetchMicroloanMovement(mov) != null)
                 .collect(Collectors.toList());
 
-            if (movimientosFinales.isEmpty()) {
-                LOGGER.warn("No se encontró ningún movimiento válido para: {}", dto.getContractId());
-                continue;
-            }
+            if (movimientosFinales == null || movimientosFinales.isEmpty() ||
+            		movimientosFinales.stream().allMatch(Objects::isNull)) {
+            	    LOGGER.warn("La lista de movimientos está vacía o contiene solo elementos nulos para el contrato: {}", dto.getContractId());
+            	    continue;
+            	}
 
+
+            LOGGER.info("Buscando combinación de movimientos que sumen el monto: {}", dto.getAmount());
             List<MicroloanMovement> selectedCombination = findMatchingCombination(movimientosFinales, dto.getAmount());
 
             if (!selectedCombination.isEmpty()) {
@@ -84,18 +90,21 @@ public class KMICR092Impl extends KMICR092Abstract {
     }
 
     private List<MicroloanMovement> getMovimientosReversados(List<MicroloanMovement> movimientos) {
+        LOGGER.info("Filtrando movimientos reversados...");
         return movimientos.stream()
             .filter(m -> Diccionario.esMovimientoYaReversado(m.getAccount().getEvent().getCode()))
             .collect(Collectors.toList());
     }
 
     private List<MicroloanMovement> getMovimientosNoReversados(List<MicroloanMovement> movimientos) {
+        LOGGER.info("Filtrando movimientos no reversados...");
         return movimientos.stream()
             .filter(m -> !Diccionario.esMovimientoYaReversado(m.getAccount().getEvent().getCode()))
             .collect(Collectors.toList());
     }
 
     private Set<String> buildReversoIndex(List<MicroloanMovement> reversados) {
+        LOGGER.info("Generando índice de claves únicas de movimientos reversados...");
         return reversados.stream()
             .map(m -> generarClaveMovimiento(m.getAccount().getEvent().getCode(), m.getAmount().getAmount(), m.getAccount().getNumber()))
             .collect(Collectors.toSet());
@@ -108,18 +117,20 @@ public class KMICR092Impl extends KMICR092Abstract {
         String clave = generarClaveMovimiento(codigoReverso, mov.getAmount().getAmount(), mov.getAccount().getNumber());
         boolean encontrado = movimientosReversados.contains(clave);
         if (encontrado) {
-            LOGGER.warn("Movimiento {} ya fue reversado anteriormente, se omite", mov);
+            LOGGER.warn("Movimiento {} ya fue reversado anteriormente, se omite", clave);
         }
         return encontrado;
     }
 
     private String generarClaveMovimiento(String code, double amount, String accountNumber) {
-        return code + "|" + toMoney(amount) + "|" + accountNumber;
+        String clave = code + "|" + toMoney(amount) + "|" + accountNumber;
+        LOGGER.debug("Clave generada para movimiento: {}", clave);
+        return clave;
     }
-
 
     private MicroloanMovement executeFetchMicroloanMovement(MicroloanMovement input) {
         try {
+            LOGGER.debug("Consultando existencia del movimiento en la base de datos: {}", input);
             return kmicR060.executeGetMicroloanMovement(input);
         } catch (Exception e) {
             LOGGER.error("Error al obtener movimiento de microcrédito", e);
@@ -131,6 +142,7 @@ public class KMICR092Impl extends KMICR092Abstract {
     public List<MicroloanMovement> executeGetMovementList(ProductInputDTO dto) {
         try {
             Map<String, Object> params = Mapper.buildParamsLogMovement(dto);
+            LOGGER.info("Ejecutando consulta de movimientos para contrato: {}", dto.getContractId());
             List<Map<String, Object>> rows = jdbcUtils.queryForList(Constants.SELECT_TRAE_DATOS_LOG, params);
             return Mapper.mapListMicroloanMovement(rows);
         } catch (Exception e) {
@@ -140,6 +152,7 @@ public class KMICR092Impl extends KMICR092Abstract {
     }
 
     private List<MicroloanMovement> findMatchingCombination(List<MicroloanMovement> movements, double targetAmount) {
+        LOGGER.info("Buscando combinación exacta de movimientos que sumen: {}", targetAmount);
         List<MicroloanMovement> result = new ArrayList<>();
         int n = movements.size();
         BigDecimal target = toMoney(targetAmount);
@@ -190,6 +203,7 @@ public class KMICR092Impl extends KMICR092Abstract {
 
     private void executeAllUpdates(ProductInputDTO dto) {
         try {
+            LOGGER.info("Ejecutando actualizaciones para contrato: {}", dto.getContractId());
             executeUpdateMicrocreditContract(dto);
             executeUpdateDisposition(dto);
             executeUpdateAmortizationContition(dto);
@@ -202,6 +216,7 @@ public class KMICR092Impl extends KMICR092Abstract {
 
     private int executeInsertMovementsBatch(List<MicroloanMovement> movements) {
         try {
+            LOGGER.info("Insertando movimientos reversados en lote: total {} movimientos", movements.size());
             return kmicR060.executeCreateMicroloanMovements(movements);
         } catch (Exception e) {
             LOGGER.error("Error al insertar movimientos", e);
@@ -244,4 +259,3 @@ public class KMICR092Impl extends KMICR092Abstract {
         }
     }
 }
-
