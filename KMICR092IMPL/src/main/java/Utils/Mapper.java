@@ -97,7 +97,7 @@ public class Mapper {
         params.put("taxRecoveredAmount", dto.getAmountIvaCobranza());
         params.put("contractId", dto.getContractId());
         params.put("acctMovId", dto.getMovId());
-        params.put("itemSettlementDate", dto.getInstallmentDate());
+        params.put("itemSettlementDate", SDF.format(dto.getInstallmentDate()));
         params.put("contCondStatusType", Constants.STATUS_PENDING);
         return params;
     }

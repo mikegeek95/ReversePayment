@@ -123,8 +123,8 @@ public class MapperTest {
     
     @Test
     public void testBuildParamsUpdateContractCondition() throws Exception {
-        ProductInputDTO dto = createDTO();
-        
+    	ProductInputDTO dto = createDTO();
+    	dto.setInstallmentDate(new SimpleDateFormat("dd/MM/yy").parse("20/07/24"));
         Map<String, Object> map = Mapper.buildParamsUpdateContractCondition(dto);
         assertEquals(Constants.STATUS_PENDING, map.get("contCondStatusType"));
     }

@@ -156,17 +156,14 @@ public class KMICR092Impl extends KMICR092Abstract {
     }
 
     private void executeAllUpdates(ProductInputDTO dto) {
+    	
         try {
+        	
             executeUpdateMicrocreditContract(dto);
-            LOGGER.info("Update executeUpdateMicrocreditContract con datos: {}", dto);
             executeUpdateDisposition(dto);
-            LOGGER.info("Update executeUpdateDisposition con datos: {}", dto);
             executeUpdateAmortizationContition(dto);
-            LOGGER.info("Update executeUpdateAmortizationContition con datos: {}", dto);
             executeUpdateDspnAmort(dto);
-            LOGGER.info("Update executeUpdateDspnAmort con datos: {}", dto);
             executeUpdateContractCondition(dto);
-            LOGGER.info("Update executeUpdateContractCondition con datos: {}", dto);
         } catch (Exception e) {
             LOGGER.error("Error ejecutando actualizaciones para contrato: {}", dto.getContractId(), e);
         }
